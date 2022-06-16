@@ -5,9 +5,20 @@ import (
 )
 
 type solution struct {
-	dayNumber int
-	Part1     int
-	Part2     int
+	Part1 int
+	Part2 int
+}
+
+func (s *solution) UnmarshalJSON(b []byte) error {
+	intArray := [2]int{}
+	error := json.Unmarshal(b, &intArray)
+	if error != nil {
+		return error
+	}
+	s.Part1 = intArray[0]
+	s.Part2 = intArray[1]
+
+	return nil
 }
 
 func sortDays(dayMap map[int]solution) []solution {
