@@ -1,7 +1,6 @@
 package day6
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -43,7 +42,7 @@ func CalcLanternFish(startFish []int, interations int) int {
 
 }
 
-func Solve() {
+func Solve() (int, int) {
 	file, err := os.ReadFile("./day6/input.txt")
 	if err != nil {
 		panic(err)
@@ -63,5 +62,7 @@ func Solve() {
 	part1 := CalcLanternFish(nums, 80)
 	part2 := CalcLanternFish(nums, 256)
 
-	fmt.Printf("Fishes part1: %v part2: %v", part1, part2)
+	// fmt.Printf("Fishes part1: %v part2: %v", part1, part2)
+
+	return part1, part2
 }

@@ -2,7 +2,15 @@ package main
 
 import (
 	"aoc2021/day1"
+	"aoc2021/day10"
 	"aoc2021/day2"
+	"aoc2021/day3"
+	"aoc2021/day4"
+	"aoc2021/day5"
+	"aoc2021/day6"
+	"aoc2021/day7"
+	"aoc2021/day8"
+	"aoc2021/day9"
 	"fmt"
 )
 
@@ -17,6 +25,14 @@ func getDays() []dayFunc {
 	return []dayFunc{
 		day1.Solve,
 		day2.Solve,
+		day3.Solve,
+		day4.Solve,
+		day5.Solve,
+		day6.Solve,
+		day7.Solve,
+		day8.Solve,
+		day9.Solve,
+		day10.Solve,
 	}
 }
 

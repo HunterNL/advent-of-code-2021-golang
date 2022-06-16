@@ -96,7 +96,7 @@ func scoreCompletion(completion []rune) int {
 	return sum
 }
 
-func Solve() {
+func Solve() (int, int) {
 	lines := file.ReadFile("./day10/input.txt")
 	sum := 0
 
@@ -108,7 +108,7 @@ func Solve() {
 	}
 
 	// Part 1
-	fmt.Printf("Syntax score: %v", sum)
+	// fmt.Printf("Syntax score: %v", sum)
 
 	scores := make([]int, 0, len(lines))
 	for _, line := range lines {
@@ -122,6 +122,8 @@ func Solve() {
 	sort.Ints(scores)
 
 	middle := len(scores) / 2
-	fmt.Printf("completion score: %v, ", scores[middle])
+	// fmt.Printf("completion score: %v, ", scores[middle])
+
+	return sum, scores[middle]
 
 }

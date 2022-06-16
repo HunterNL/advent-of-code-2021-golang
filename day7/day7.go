@@ -2,7 +2,6 @@ package day7
 
 import (
 	"aoc2021/intmath"
-	"fmt"
 	"math"
 	"os"
 	"sort"
@@ -58,7 +57,7 @@ func CalcFuelExpensive(crabPos []int) int {
 	return minFuel
 }
 
-func Solve() {
+func Solve() (int, int) {
 	file, err := os.ReadFile("./day7/input.txt")
 	if err != nil {
 		panic(err)
@@ -75,7 +74,11 @@ func Solve() {
 		nums[i] = num
 	}
 
-	fmt.Printf("Part 1: Crab movement: %v", CalcFuel(nums))
-	fmt.Printf("Part 1: Crab movement: %v", CalcFuelExpensive(nums))
+	part1 := CalcFuel(nums)
+	part2 := CalcFuelExpensive(nums)
 
+	// fmt.Printf("Part 1: Crab movement: %v\n", part1)
+	// fmt.Printf("Part 2: Crab movement: %v\n", part2)
+
+	return part1, part2
 }

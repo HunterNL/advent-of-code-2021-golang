@@ -2,7 +2,6 @@ package day3
 
 import (
 	"aoc2021/aocutil"
-	"fmt"
 	"strconv"
 )
 
@@ -30,7 +29,7 @@ func part2(lines []string, invert bool) string {
 		bitcount := countBits(lines)
 		halfPoint = 0.5 * float32(len(lines))
 
-		fmt.Printf("HP: %T %v", halfPoint, halfPoint)
+		// fmt.Printf("HP: %T %v", halfPoint, halfPoint)
 
 		if float32(bitcount[bitIndex]) == halfPoint {
 			keepRune = '1'
@@ -61,7 +60,7 @@ func part2(lines []string, invert bool) string {
 	panic("aaaaa")
 }
 
-func Solve() {
+func Solve() (int, int) {
 	lines := aocutil.ReadFile("./day3/input.txt")
 
 	byteMiddle := len(lines) / 2
@@ -83,7 +82,9 @@ func Solve() {
 
 	}
 
-	fmt.Printf("Gamma: %v Epsilon: %v Multiplied: %v\n", gamma, epsilon, gamma*epsilon)
+	part1 := gamma * epsilon
+
+	// fmt.Printf("Gamma: %v Epsilon: %v Multiplied: %v\n", gamma, epsilon, gamma*epsilon)
 
 	// Part 2
 	oxyRating, err := strconv.ParseInt(part2(lines, false), 2, 64)
@@ -96,7 +97,11 @@ func Solve() {
 		panic(err)
 	}
 
+	part2 := oxyRating * cooRating
+
+	return part1, int(part2)
+
 	// Oxygen generator rating
-	fmt.Printf("Oxy rating: %v cooRating: %v multiplied: %v", oxyRating, cooRating, oxyRating*cooRating)
+	// fmt.Printf("Oxy rating: %v cooRating: %v multiplied: %v", oxyRating, cooRating, oxyRating*cooRating)
 
 }

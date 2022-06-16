@@ -1,7 +1,6 @@
 package day4
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"strconv"
@@ -98,7 +97,7 @@ func parseBoard(str string) *board {
 	return board
 }
 
-func Solve() {
+func Solve() (int, int) {
 	file, err := os.ReadFile("./day4/input.txt")
 	if err != nil {
 		panic(err)
@@ -163,8 +162,13 @@ func Solve() {
 	sumLowest := sumIntSlice(unrolledLowest)
 	sumHighest := sumIntSlice(unrolledHighest)
 
-	fmt.Printf("Winner Sum: %v Hit Number: %v Product: %v\n", sumLowest, lowestBoard.hitNumber, sumLowest*lowestBoard.hitNumber)
-	fmt.Printf("Looser Sum: %v Hit Number: %v Product: %v\n", sumHighest, highestBoard.hitNumber, sumHighest*highestBoard.hitNumber)
+	// fmt.Printf("Winner Sum: %v Hit Number: %v Product: %v\n", sumLowest, lowestBoard.hitNumber, sumLowest*lowestBoard.hitNumber)
+	// fmt.Printf("Looser Sum: %v Hit Number: %v Product: %v\n", sumHighest, highestBoard.hitNumber, sumHighest*highestBoard.hitNumber)
+
+	part1 := sumLowest * lowestBoard.hitNumber
+	part2 := sumHighest * highestBoard.hitNumber
+
+	return part1, part2
 
 }
 

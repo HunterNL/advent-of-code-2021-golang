@@ -2,7 +2,6 @@ package day5
 
 import (
 	"aoc2021/vec2"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -58,7 +57,17 @@ func dirTo(x1, y1, x2, y2 int) (int, int) {
 	return x, y
 }
 
-func Solve() {
+func countIntersections(g *grid) int {
+	intersections := 0
+	for _, n := range *g {
+		if n >= 2 {
+			intersections++
+		}
+	}
+	return intersections
+}
+
+func Solve() (int, int) {
 	file, err := os.ReadFile("./day5/input.txt")
 	if err != nil {
 		panic(err)
@@ -66,9 +75,10 @@ func Solve() {
 
 	lines := parseFile(string(file))
 
-	grid := make(grid)
-
 	// Part 1
+	part1Grid := make(grid)
+	part2Grid := make(grid)
+
 	// for _, line := range lines {
 	// 	if(line.Isorthogonal())
 	// 		steps := line.A.StepsTo(&line.B)
@@ -82,21 +92,34 @@ func Solve() {
 		cur := line.A
 		tar := line.B
 		dirX, dirY := dirTo(int(cur.X), int(cur.Y), int(tar.X), int(tar.Y))
-		grid[cur]++
+		if line.Isorthogonal() {
+			part1Grid[cur]++
+		}
+
+		part2Grid[cur]++
 		for cur != tar {
 			cur.X += float64(dirX)
 			cur.Y += float64(dirY)
 
-			grid[cur]++
+			part2Grid[cur]++
+
+			if line.Isorthogonal() {
+				part1Grid[cur]++
+			}
 		}
 	}
 
-	intersections := 0
-	for _, n := range grid {
-		if n >= 2 {
-			intersections++
-		}
-	}
+	part1 := countIntersections(&part1Grid)
+	part2 := countIntersections(&part2Grid)
 
-	fmt.Printf("Intersections: %v", intersections)
+	// intersections := 0
+	// for _, n := range grid {
+	// 	if n >= 2 {
+	// 		intersections++
+	// 	}
+	// }
+
+	// fmt.Printf("Intersections: %v", intersections)
+
+	return part1, part2
 }

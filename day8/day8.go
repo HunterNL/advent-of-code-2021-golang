@@ -2,7 +2,6 @@ package day8
 
 import (
 	"aoc2021/file"
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -146,14 +145,16 @@ func SumLines(lines []string) int {
 
 }
 
-func Solve() {
+func Solve() (int, int) {
 	lines := file.ReadFile("./day8/input.txt")
 
 	digits := CountUniqueDigits(lines)
 
 	sum := SumLines(lines)
 
-	fmt.Printf("Unique Digits: %v Output sum: %v", digits, sum)
+	// fmt.Printf("Unique Digits: %v Output sum: %v", digits, sum)
+
+	return digits, sum
 }
 
 func findOneByLength(strs [][]rune, searchLen int) []rune {
