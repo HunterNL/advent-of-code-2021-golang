@@ -1,0 +1,64 @@
+package day19
+
+import (
+	"aoc2021/intmath"
+	"strconv"
+	"strings"
+)
+
+type vec3 struct {
+	x, y, z int
+}
+
+func manhattan(a, b vec3) int {
+	return intmath.Distance(a.x, b.x) + intmath.Distance(a.y, b.y) + intmath.Distance(a.z, b.z)
+}
+
+type scannerDetections struct {
+	scannerId  int
+	detections []vec3
+}
+
+func parseDetection(str string) []scannerDetections {
+	scanners := strings.Split(str, "\n\n")
+	sd := make([]scannerDetections, 0, len(scanners))
+
+	for is, s := range scanners {
+		lines := strings.Split(s, "\n")[1:]
+		detections := make([]vec3, 0, len(lines))
+		for iv, l := range lines {
+			detections[iv] = parseVec3(l)
+		}
+		sd[is] = scannerDetections{detections: detections, scannerId: is}
+	}
+
+	return sd
+}
+
+func unpack3(lines []string) (string, string, string) {
+	return lines[0], lines[1], lines[2]
+}
+
+func parseVec3(line string) vec3 {
+	xs, ys, zs := unpack3(strings.Split(line, ","))
+
+	x, err := strconv.Atoi(xs)
+	if err != nil {
+		panic(err)
+	}
+	y, err := strconv.Atoi(ys)
+	if err != nil {
+		panic(err)
+	}
+
+	z, err := strconv.Atoi(zs)
+	if err != nil {
+		panic(err)
+	}
+
+	return vec3{x: x, y: y, z: z}
+}
+
+func Solve() {
+
+}
