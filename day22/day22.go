@@ -330,7 +330,7 @@ func removeOverlap(reactor cuboidReactor, newArea cuboid) cuboidReactor {
 	return reactor
 }
 
-func Solve() {
+func Solve() (int, int) {
 	bytes, err := os.ReadFile("./day22/input.txt")
 
 	if err != nil {
@@ -338,6 +338,13 @@ func Solve() {
 	}
 
 	instructions := parseInstructions(string(bytes))
+
+	p1r := vector3DReactor{}
+	for _, step := range instructions {
+		p1r.applyStep(step)
+	}
+
+	p1 := p1r.countOn()
 
 	r := cuboidReactor{}
 	for i, step := range instructions {
@@ -348,4 +355,6 @@ func Solve() {
 	sum := r.countOn()
 
 	fmt.Println("Count on:", sum)
+
+	return p1, sum
 }

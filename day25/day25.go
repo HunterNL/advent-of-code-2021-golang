@@ -126,7 +126,7 @@ func (g *grid) step(x, y int) (grid, bool) {
 	return out, moved
 }
 
-func Solve() {
+func Solve() (int, int) {
 	lines := file.ReadFile("./day25/input.txt")
 	grid, x, y := parseGrid(lines)
 
@@ -138,4 +138,6 @@ func Solve() {
 	}
 
 	fmt.Printf("Steps: %v\n", steps)
+
+	return steps, -1
 }

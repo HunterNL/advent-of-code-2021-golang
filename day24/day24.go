@@ -4,6 +4,7 @@ import (
 	"aoc2021/file"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -407,7 +408,7 @@ func BruteForceDown() {
 	}
 }
 
-func BruteForceUp() {
+func BruteForceUp() int {
 	sectionFile, err := os.ReadFile("./day24/input.txt")
 	if err != nil {
 		panic(err)
@@ -487,8 +488,9 @@ func BruteForceUp() {
 					// _, stillValidZ := acceptedZState[sectionId][a1[2]]
 
 					if sectionId == 13 && rightALU[2] == 0 {
+
 						fmt.Printf("Found result: %v %v", leftNum, rightNum)
-						return
+						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
 					}
 
 					// if !stillValidZ {
@@ -503,6 +505,8 @@ func BruteForceUp() {
 		incrementNum(leftNum[:], 7)
 
 	}
+
+	return -1
 }
 
 func BruteForce() {
@@ -542,10 +546,18 @@ func BruteForce() {
 	// instructions := parseInstructions(file.ReadFile("./day24/input.txt"))
 }
 
-func Solve() {
-	BruteForceUp()
+func digitSliceToInt(digits []int) int {
+	out := 0
+	for i := len(digits) - 1; i >= 0; i-- {
+		out = out + digits[i]*int(math.Pow(10, float64(len(digits)-i-1)))
+	}
+	return out
+}
 
-	return
+func Solve() (int, int) {
+	sol := BruteForceUp()
+	return -1, sol
+
 	sectionFile, err := os.ReadFile("./day24/input.txt")
 	if err != nil {
 		panic(err)
@@ -632,5 +644,7 @@ func Solve() {
 
 	// fmt.Print(workingInputs)
 	// fmt.Print(workingStates)
+
+	return -1, -1
 
 }

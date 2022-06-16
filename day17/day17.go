@@ -8,6 +8,19 @@ type target struct {
 	left, right, top, bottom int
 }
 
+func iterTillDown(launchY int) int {
+	dy := launchY
+	yPos := 0
+	for dy >= 0 {
+		yPos += dy
+		dy = dy - 1
+		fmt.Println(yPos)
+	}
+
+	return yPos
+
+}
+
 func findValidX(t target) (int, iter int) {
 	launchX := -1
 	iterations := -1
@@ -33,13 +46,13 @@ func findValidY(t target, maxIterations int) int {
 	for found = false; !found; {
 		launchY++
 		found = iterTillYHit(t, launchY, maxIterations)
-		println("f, launchy", found, launchY)
+		// println("f, launchy", found, launchY)
 	}
 
 	for found {
 		launchY++
 		found = iterTillYHit(t, launchY, maxIterations)
-		println("f, launchy", found, launchY)
+		// println("f, launchy", found, launchY)
 	}
 
 	return launchY - 1
@@ -68,11 +81,13 @@ func countHits(t target) int {
 	return hits
 }
 
-func Solve() {
+func Solve() (int, int) {
 	input := "target area: x=209..238, y=-86..-59"
 	target := parseTarget(input)
 	// x := findValidX(target)
 	// y := findValidY(target)
+
+	maxY := iterTillDown(85)
 
 	launchX, iterations := findValidX(target)
 	launchY := findValidY(target, iterations)
@@ -82,5 +97,7 @@ func Solve() {
 	hitCount := countHits(target)
 
 	fmt.Printf("Hit %v hitCount: %v\n", hit, hitCount)
+
+	return maxY, hitCount
 
 }

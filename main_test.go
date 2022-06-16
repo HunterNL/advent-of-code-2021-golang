@@ -25,7 +25,7 @@ func TestSolutions(t *testing.T) {
 	}
 
 	for dayIndex, day := range days {
-		t.Run(fmt.Sprint("Day ", dayIndex+1), func(t *testing.T) {
+		t.Run(fmt.Sprint("Day", dayIndex+1), func(t *testing.T) {
 			solution, foundSolution := solutions[dayIndex+1]
 
 			if !foundSolution {
@@ -36,7 +36,7 @@ func TestSolutions(t *testing.T) {
 			part1, part2 := day()
 
 			if part1 != solution.Part1 {
-				t.Errorf("Expected part1's solution to be %v instead of %v", solution.Part1, part2)
+				t.Errorf("Expected part1's solution to be %v instead of %v", solution.Part1, part1)
 			}
 
 			if part2 != solution.Part2 {

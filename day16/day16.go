@@ -165,7 +165,7 @@ func resolvePacket(p *bitsPackage) int {
 	panic("Unknown package")
 }
 
-func Solve() {
+func Solve() (int, int) {
 	line := file.ReadFile("./day16/input.txt")[0]
 
 	b, err := hex.DecodeString(line)
@@ -186,5 +186,7 @@ func Solve() {
 	res := resolvePacket(packet)
 
 	fmt.Printf("P: %v\n versionSum: %v\n Evaluated: %v\n", packet, sum, res)
+
+	return sum, res
 
 }

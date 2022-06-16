@@ -53,15 +53,15 @@ func (r *vector1dReactor) applyStep(s step) {
 func (r vector3DReactor) applyStep(s step) {
 	c := s.area
 
-	// var centerArea = cuboid{
-	// 	line{-50, 50},
-	// 	line{-50, 50},
-	// 	line{-50, 50},
-	// }
+	var centerArea = cuboid{
+		line{-50, 50},
+		line{-50, 50},
+		line{-50, 50},
+	}
 
-	// if !centerArea.overlaps(c) {
-	// 	return
-	// }
+	if !centerArea.overlaps(c) {
+		return
+	}
 
 	for z := c.z.min; z <= c.z.max; z++ {
 		for y := c.y.min; y <= c.y.max; y++ {

@@ -139,7 +139,15 @@ func countWinners(o omniverse) (int, int) {
 
 }
 
-func Solve() {
+func intMax(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func Solve() (int, int) {
 	p1Game := startGame(4, 2)
 	rolls := playGame(p1Game)
 
@@ -166,4 +174,6 @@ func Solve() {
 	} else {
 		fmt.Printf("P2 wins\n")
 	}
+
+	return score, intMax(p1Wins, p2Wins)
 }

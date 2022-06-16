@@ -200,7 +200,7 @@ func enhanceImage(in image, algorithm string, oobState bool) (image, bool) {
 	return out, oobCycle(oobState, algorithm)
 }
 
-func Solve() {
+func Solve() (int, int) {
 	file, err := os.ReadFile("./day20/input.txt")
 	alg, img := parseInput(file)
 
@@ -212,15 +212,19 @@ func Solve() {
 
 	oobState := false
 
-	// for i := 0; i < 2; i++ {
-	// 	img, oobState = enhanceImage(img, alg, oobState)
-	// }
+	for i := 0; i < 2; i++ {
+		img, oobState = enhanceImage(img, alg, oobState)
+	}
 
-	for i := 0; i < 50; i++ {
+	len1 := len(img)
+
+	for i := 0; i < 48; i++ {
 		img, oobState = enhanceImage(img, alg, oobState)
 	}
 
 	fmt.Printf("Image size: %v\n", len(img))
+
+	return len1, len(img)
 
 	// fmt.Printf("Image:\n\n%v\n%v\n\n", img.String(), alg)
 }

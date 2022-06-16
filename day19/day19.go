@@ -689,7 +689,7 @@ func findLargestDistance(scanners []scanner) int {
 	return maxDist
 }
 
-func Solve() {
+func Solve() (int, int) {
 	file, err := os.ReadFile("./day19/input.txt")
 	if err != nil {
 		panic(err)
@@ -734,5 +734,7 @@ func Solve() {
 	// find 2 edges in a single scanner with overlap with a known good scanner
 	// resolve its rotatation
 	// apply to scanner
+
+	return count, dist
 
 }

@@ -178,7 +178,22 @@ func parseGrid(lines []string) ([]uint8, int, int) {
 	return grid, rowSize, rowCount
 }
 
-func Solve() {
+func part1(file []string) int {
+	g, rowSize, rowCount := parseGrid(file)
+
+	risk := 0
+	path := findPath(&g, rowSize, rowCount, 0, rowSize*rowCount-1)
+
+	for _, i := range path {
+		x, y := grid.ToXY(i, rowSize)
+		fmt.Printf("X: %v, Y:%v\n", x, y)
+		risk += int(g[i])
+	}
+
+	return risk
+}
+
+func Solve() (int, int) {
 	file := file.ReadFile("./day15/input.txt")
 	g, rowSize, rowCount := parseGrid(file)
 	g2 := repeatRight(&g, rowSize)
@@ -194,6 +209,8 @@ func Solve() {
 	}
 
 	fmt.Printf("Total risk: %v\n", risk)
+
+	return part1(file), risk
 }
 
 func inc(i, a uint8) uint8 {

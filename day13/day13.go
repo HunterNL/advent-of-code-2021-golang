@@ -137,12 +137,16 @@ func printGrid(grid *map[xy]bool) string {
 	return sb.String()
 }
 
-func Solve() {
+func Solve() (int, int) {
 	bytes, err := os.ReadFile("./day13/input.txt")
 	if err != nil {
 		panic(err)
 	}
 	str := string(bytes)
+
+	grid1, folds1 := parseFold(str)
+	applyFold(&grid1, folds1[0])
+	part1 := countFolds(&grid1)
 
 	grid, folds := parseFold(str)
 
@@ -157,6 +161,8 @@ func Solve() {
 	gridstr := printGrid(&grid)
 
 	print(gridstr)
+
+	return part1, -1
 
 	// os.WriteFile("output.txt", []byte(gridstr), fs.ModeAppend)
 }

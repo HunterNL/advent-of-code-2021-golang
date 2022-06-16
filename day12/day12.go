@@ -132,7 +132,7 @@ func countComplexRoutes(g Graph) int {
 	return len(routes)
 }
 
-func Solve() {
+func Solve() (int, int) {
 	lines := file.ReadFile("./day12/input.txt")
 	g := parseGraph(lines)
 
@@ -140,4 +140,6 @@ func Solve() {
 	countComplex := countComplexRoutes(&g)
 
 	fmt.Printf("Simples routes: %v Complex routes: %v\n", count, countComplex)
+
+	return count, countComplex
 }
