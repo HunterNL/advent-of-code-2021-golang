@@ -2,6 +2,7 @@ package main
 
 import (
 	"aoc2021/day1"
+	"aoc2021/day2"
 	"fmt"
 )
 
@@ -15,6 +16,7 @@ type dayResult struct {
 func getDays() []dayFunc {
 	return []dayFunc{
 		day1.Solve,
+		day2.Solve,
 	}
 }
 

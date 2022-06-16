@@ -15,7 +15,7 @@ func splitCommand(str string) (string, int) {
 	return split[0], num
 }
 
-func Solve() {
+func Solve() (int, int) {
 	horizontal := 0
 	depth := 0
 	aim := 0
@@ -23,17 +23,23 @@ func Solve() {
 	commands := aocutil.ReadFile("./day2/input.txt")
 
 	// Part 1
-	// for _, str := range commands {
-	// 	command, count := splitCommand(str)
-	// 	switch command {
-	// 	case "forward":
-	// 		horizontal += count
-	// 	case "up":
-	// 		depth -= count
-	// 	case "down":
-	// 		depth += count
-	// 	}
-	// }
+	for _, str := range commands {
+		command, count := splitCommand(str)
+		switch command {
+		case "forward":
+			horizontal += count
+		case "up":
+			depth -= count
+		case "down":
+			depth += count
+		}
+	}
+
+	part1 := horizontal * depth
+
+	horizontal = 0
+	depth = 0
+	aim = 0
 
 	for _, str := range commands {
 		command, count := splitCommand(str)
@@ -48,6 +54,8 @@ func Solve() {
 		}
 	}
 
-	println(horizontal * depth)
+	part2 := horizontal * depth
+
+	return part1, part2
 
 }
