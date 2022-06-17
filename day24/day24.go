@@ -310,7 +310,7 @@ const leftSize = numSize - highestBacktraceSection
 
 // const
 
-func BruteForceDown() {
+func BruteForceDown() int {
 	sectionFile, err := os.ReadFile("./day24/input.txt")
 	if err != nil {
 		panic(err)
@@ -378,9 +378,9 @@ func BruteForceDown() {
 
 		if isValidZ {
 			fmt.Println("Found valid starting digits!", leftNum, leftALU[2])
-			rightNum := [6]int{1, 1, 1, 1, 1, 1}
+			rightNum := [6]int{9, 9, 9, 9, 9, 9}
 
-			for rightNum != [6]int{9, 9, 9, 9, 9, 9} {
+			for rightNum != [6]int{1, 1, 1, 1, 1, 1} {
 				rightALU := leftALU //Reset to a1 state every attempt
 				var sectionId int
 				for sectionId = 8; sectionId < len(sections); sectionId++ {
@@ -391,7 +391,7 @@ func BruteForceDown() {
 
 					if sectionId == 13 && rightALU[2] == 0 {
 						fmt.Printf("Found result: %v %v", leftNum, rightNum)
-						return
+						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
 					}
 
 					// if !stillValidZ {
@@ -406,6 +406,8 @@ func BruteForceDown() {
 		decrementNum(leftNum[:], 7)
 
 	}
+
+	return -1
 }
 
 func BruteForceUp() int {
@@ -555,8 +557,9 @@ func digitSliceToInt(digits []int) int {
 }
 
 func Solve() (int, int) {
-	sol := BruteForceUp()
-	return -1, sol
+	upper := BruteForceDown()
+	lower := BruteForceUp()
+	return upper, lower
 
 	sectionFile, err := os.ReadFile("./day24/input.txt")
 	if err != nil {
