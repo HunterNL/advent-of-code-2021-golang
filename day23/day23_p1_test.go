@@ -1,20 +1,21 @@
 package day23
 
 import (
+	"math"
 	"os"
 	"testing"
 )
 
-func TestParse(t *testing.T) {
+func TestParseP1(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
 		panic(err)
 	}
 
-	board := parseBoard(string(bytes))
+	board := parsep1Board(string(bytes))
 
-	expectedBoard := map[position]amphipod{
+	expectedBoard := map[vec2]amphipod{
 		{2, 1}: amphipod('B'),
 		{2, 2}: amphipod('A'),
 		{4, 1}: amphipod('C'),
@@ -37,26 +38,28 @@ func TestParse(t *testing.T) {
 
 }
 
-func TestScore(t *testing.T) {
+func TestScoreP1(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
 		panic(err)
 	}
 
-	board := parseBoard(string(bytes))
+	board := parsep1Board(string(bytes))
+
+	score := math.MaxInt
 
 	expectedScore := 12521
 
-	g := game{state: board}
+	g := gamep1{state: board}
 
-	allGames := []game{}
+	// allGames := []gamep1{}
 
-	g.playMoves(s)
+	g.playMovesP1(&score)
 
-	score := lowestScore(allGames)
+	// score := lowestScore(allGames)
 
 	if score != expectedScore {
-		t.Errorf("Expected a score of %v, not %v\n", expectedScore, lowestScore(allGames))
+		t.Errorf("Expected a score of %v, not %v\n", expectedScore, score)
 	}
 }

@@ -499,6 +499,8 @@ func lowestScore(games []game) int {
 func Solve() (int, int) {
 	bytes, err := os.ReadFile("./day23/input.txt")
 
+	p1 := solveP1()
+
 	if err != nil {
 		panic(err)
 	}
@@ -519,5 +521,7 @@ func Solve() (int, int) {
 
 	fmt.Printf("Lowest score:%v\n", score)
 
-	return -1, score
+	fmt.Println(p1, score)
+
+	return p1, score
 }
