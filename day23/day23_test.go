@@ -14,7 +14,7 @@ func TestParseLarge(t *testing.T) {
 
 	parsedBoard := parseBoard(string(bytes), PARSE_LARGE)
 
-	expectedBoard := largeBoard{
+	expectedBoard := board{
 		amphipod(0),
 		amphipod(0),
 		amphipod(0),
@@ -54,7 +54,7 @@ func TestParseSmall(t *testing.T) {
 
 	parsedBoard := parseBoard(string(bytes), PARSE_SMALL)
 
-	expectedBoard := largeBoard{
+	expectedBoard := board{
 		amphipod(0),
 		amphipod(0),
 		amphipod(0),
@@ -87,7 +87,7 @@ func TestParseSmall(t *testing.T) {
 }
 
 func TestPrint(t *testing.T) {
-	board := largeBoard{
+	board := board{
 		amphipod('A'),
 		amphipod('B'),
 		amphipod('C'),
@@ -202,7 +202,7 @@ func TestPerfectMovement(t *testing.T) {
 	config := gameCache{
 		pathMemo:     map[int]path{},
 		distanceMemo: map[int]int{},
-		positionMap:  positionMapLarge,
+		positionMap:  positionMap,
 		winState:     desiredLargeBoard,
 		roomMap:      targetRooms,
 		roomSize:     4,

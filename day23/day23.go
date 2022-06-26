@@ -15,14 +15,14 @@ type vec2 struct {
 
 const BOARD_SIZE = 23
 
-type largeBoard [BOARD_SIZE]amphipod
+type board [BOARD_SIZE]amphipod
 
-func (b *largeBoard) amphipodAt(i position) amphipod {
+func (b *board) amphipodAt(i position) amphipod {
 	return b[i]
 }
 
 type gameSet []game
-type gameMap map[largeBoard]int
+type gameMap map[board]int
 
 // Len is the number of elements in the collection.
 func (gs gameSet) Len() int {
@@ -63,7 +63,7 @@ type amphipod byte
 type position int
 type pathMemo map[int]path
 
-var positionMapLarge = [BOARD_SIZE]vec2{
+var positionMap = [BOARD_SIZE]vec2{
 	0:  {0, 0},
 	1:  {1, 0},
 	2:  {3, 0},
@@ -195,7 +195,7 @@ func sign(a int) int {
 	}
 }
 
-func shouldLeaveHome(b *largeBoard, pos position, config *gameCache) bool {
+func shouldLeaveHome(b *board, pos position, config *gameCache) bool {
 	pod := b.amphipodAt(pos)
 	start, end := podHomePositions(pod, config)
 	for i := start + 1; i <= end; i++ {
@@ -207,7 +207,7 @@ func shouldLeaveHome(b *largeBoard, pos position, config *gameCache) bool {
 	return false
 }
 
-func availableDestinations(b *largeBoard, currentPosition position, cache *gameCache) []position {
+func availableDestinations(b *board, currentPosition position, cache *gameCache) []position {
 	pod := b.amphipodAt(currentPosition)
 	out := make([]position, 0, 16)
 
@@ -235,7 +235,7 @@ func availableDestinations(b *largeBoard, currentPosition position, cache *gameC
 	return []position{}
 }
 
-func findHomePosition(b *largeBoard, pod amphipod, config *gameCache) position {
+func findHomePosition(b *board, pod amphipod, config *gameCache) position {
 	start, end := podHomePositions(pod, config)
 	for position := end; position >= start; position-- {
 		if !isOccupied(b, position) {
@@ -246,7 +246,7 @@ func findHomePosition(b *largeBoard, pod amphipod, config *gameCache) position {
 	panic("Unkown state, room full")
 }
 
-func canEnterHome(b *largeBoard, pod amphipod, config *gameCache) bool {
+func canEnterHome(b *board, pod amphipod, config *gameCache) bool {
 	start, end := podHomePositions(pod, config)
 
 	for i := end; i >= start; i-- {
@@ -261,7 +261,7 @@ func podHomePositions(pod amphipod, config *gameCache) (position, position) {
 	return targetRooms[pod], targetRooms[pod] + position(config.roomSize) - 1
 }
 
-func canPathTo(b *largeBoard, from, to position, cache *gameCache) bool {
+func canPathTo(b *board, from, to position, cache *gameCache) bool {
 	if isOccupied(b, to) {
 		return false
 	}
@@ -327,13 +327,13 @@ func createPath(from, to position, cache *gameCache) []position {
 	return out
 }
 
-func isOccupied(b *largeBoard, pos position) bool {
+func isOccupied(b *board, pos position) bool {
 	return b[pos] != amphipod(0)
 }
 
 // Frequently copied game data
 type game struct {
-	state     largeBoard
+	state     board
 	score     int
 	fScore    int
 	heapIndex int
@@ -346,7 +346,7 @@ type gameCache struct {
 	positionMap  [BOARD_SIZE]vec2
 	roomMap      map[amphipod]position
 	roomSize     int
-	winState     largeBoard
+	winState     board
 }
 
 var costMap = map[amphipod]int{
@@ -371,11 +371,11 @@ func (g game) applyMove(from, to position, cache *gameCache) game {
 	return g
 }
 
-func isWon(board largeBoard, cache *gameCache) bool {
-	return board == cache.winState
+func isWon(b board, cache *gameCache) bool {
+	return b == cache.winState
 }
 
-func render(b largeBoard, pm [BOARD_SIZE]vec2) string {
+func render(b board, pm [BOARD_SIZE]vec2) string {
 	lines := make([][]byte, 5)
 
 	for i := 0; i < 5; i++ {
@@ -406,7 +406,7 @@ const (
 	PARSE_LARGE
 )
 
-func parseBoard(s string, mode parsemode) largeBoard {
+func parseBoard(s string, mode parsemode) board {
 
 	justChars := strings.ReplaceAll(strings.Trim(s, " \n"), "#", "")
 	rowOffset := 1
@@ -418,13 +418,13 @@ func parseBoard(s string, mode parsemode) largeBoard {
 	topRoomContent := strings.TrimSpace(lines[2])
 	bottomRoomContent := strings.TrimSpace(lines[3])
 
-	board := largeBoard{}
+	out := board{}
 	for i := 0; i < 4; i++ {
-		board[HallwaySize+i*4] = amphipod(topRoomContent[i])
+		out[HallwaySize+i*4] = amphipod(topRoomContent[i])
 	}
 
 	for i := 0; i < 4; i++ {
-		board[HallwaySize+rowOffset+i*4] = amphipod(bottomRoomContent[i])
+		out[HallwaySize+rowOffset+i*4] = amphipod(bottomRoomContent[i])
 	}
 
 	if mode == PARSE_LARGE {
@@ -441,12 +441,12 @@ func parseBoard(s string, mode parsemode) largeBoard {
 		}
 
 		for i, pod := range day2Content {
-			board[i] = pod
+			out[i] = pod
 		}
 
 	}
 
-	return board
+	return out
 }
 
 func hueristic(g game, config *gameCache) int {
@@ -492,14 +492,14 @@ type move struct {
 	to   position
 }
 
-func findQuickestMoves(startPosition largeBoard, roomSize int, winState largeBoard) int {
+func findQuickestMoves(startPosition board, roomSize int, winState board) int {
 	openSet := gameSet{}
 	seenStates := gameMap{}
 
 	config := gameCache{
 		pathMemo:     map[int]path{},
 		distanceMemo: map[int]int{},
-		positionMap:  positionMapLarge,
+		positionMap:  positionMap,
 		winState:     winState,
 		roomMap:      targetRooms,
 		roomSize:     roomSize,
