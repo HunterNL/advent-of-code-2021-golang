@@ -5,14 +5,14 @@ import (
 	"testing"
 )
 
-func TestParse(t *testing.T) {
+func TestParseLarge(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
 		panic(err)
 	}
 
-	parsedBoard := parseLargeBoard(string(bytes))
+	parsedBoard := parseBoard(string(bytes), PARSE_LARGE)
 
 	expectedBoard := largeBoard{
 		amphipod(0),
@@ -38,6 +38,46 @@ func TestParse(t *testing.T) {
 		amphipod('A'),
 		amphipod('C'),
 		amphipod('A'),
+	}
+
+	if expectedBoard != parsedBoard {
+		t.Error("Parsing error")
+	}
+
+}
+func TestParseSmall(t *testing.T) {
+	bytes, err := os.ReadFile("./test_input.txt")
+
+	if err != nil {
+		panic(err)
+	}
+
+	parsedBoard := parseBoard(string(bytes), PARSE_SMALL)
+
+	expectedBoard := largeBoard{
+		amphipod(0),
+		amphipod(0),
+		amphipod(0),
+		amphipod(0),
+		amphipod(0),
+		amphipod(0),
+		amphipod(0),
+		amphipod('B'),
+		amphipod('A'),
+		amphipod(0),
+		amphipod(0),
+		amphipod('C'),
+		amphipod('D'),
+		amphipod(0),
+		amphipod(0),
+		amphipod('B'),
+		amphipod('C'),
+		amphipod(0),
+		amphipod(0),
+		amphipod('D'),
+		amphipod('A'),
+		amphipod(0),
+		amphipod(0),
 	}
 
 	if expectedBoard != parsedBoard {
@@ -89,14 +129,45 @@ func TestPrint(t *testing.T) {
 	t.Fail()
 }
 
-func TestScore(t *testing.T) {
+func TestScoreSmall(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
 		panic(err)
 	}
 
-	board := parseLargeBoard(string(bytes))
+	board := parseBoard(string(bytes), PARSE_SMALL)
+
+	expectedScore := 12521
+
+	g := game{state: board}
+
+	config := gameCache{
+		pathMemo:     map[int]path{},
+		distanceMemo: map[int]int{},
+		positionMap:  positionMapLarge,
+		winState:     desiredSmallBoard,
+		roomMap:      targetRoomsLarge,
+		roomSize:     2,
+	}
+
+	score := findQuickestMoves(g, &config)
+
+	// g.playMoves(&score, &config, 0)
+
+	if score != expectedScore {
+		t.Errorf("Expected a score of %v, not %v\n", expectedScore, score)
+	}
+}
+
+func TestScoreLarge(t *testing.T) {
+	bytes, err := os.ReadFile("./test_input.txt")
+
+	if err != nil {
+		panic(err)
+	}
+
+	board := parseBoard(string(bytes), PARSE_LARGE)
 
 	expectedScore := 44169
 
@@ -158,7 +229,7 @@ func TestPerfectMovement(t *testing.T) {
 		panic(err)
 	}
 
-	board := parseLargeBoard(string(bytes))
+	board := parseBoard(string(bytes), PARSE_LARGE)
 
 	expectedScore := 44169
 
