@@ -13,9 +13,9 @@ func TestParse(t *testing.T) {
 		panic(err)
 	}
 
-	parsedBoard := parseBoard(string(bytes))
+	parsedBoard := parseLargeBoard(string(bytes))
 
-	expectedBoard := board{
+	expectedBoard := largeBoard{
 		amphipod(0),
 		amphipod(0),
 		amphipod(0),
@@ -60,7 +60,7 @@ func TestParse(t *testing.T) {
 // }
 
 func TestPrint(t *testing.T) {
-	board := board{
+	board := largeBoard{
 		amphipod('A'),
 		amphipod('B'),
 		amphipod('C'),
@@ -97,17 +97,110 @@ func TestScore(t *testing.T) {
 		panic(err)
 	}
 
-	board := parseBoard(string(bytes))
+	board := parseLargeBoard(string(bytes))
 
 	expectedScore := 44169
 
 	g := game{state: board}
 
+	config := gameCache{
+		pathMemo:     map[int]path{},
+		distanceMemo: map[int]int{},
+		positionMap:  positionMapLarge,
+		winState:     desiredLargeBoard,
+		roomMap:      targetRoomsLarge,
+		roomSize:     4,
+	}
+
 	score := math.MaxInt
 
-	g.playMoves(&score)
+	g.playMoves(&score, &config, 0)
 
 	if score != expectedScore {
 		t.Errorf("Expected a score of %v, not %v\n", expectedScore, score)
+	}
+}
+
+type move struct {
+	from position
+	to   position
+}
+
+var perfectMoves = []move{
+	{19, 6},
+	{20, 0},
+	{15, 5},
+	{16, 4},
+	{17, 1},
+	{11, 3},
+	{3, 17},
+	{12, 3},
+	{3, 16},
+	{13, 3},
+	{14, 2},
+	{3, 14},
+	{4, 13},
+	{21, 4},
+	{4, 15},
+	{5, 12},
+	{22, 5},
+	{2, 22},
+	{7, 2},
+	{2, 11},
+	{8, 4},
+	{9, 3},
+	{4, 21},
+	{3, 20},
+	{5, 9},
+	{6, 19},
+	{1, 8},
+	{0, 7},
+}
+
+func TestPerfectMovement(t *testing.T) {
+	bytes, err := os.ReadFile("./test_input.txt")
+
+	if err != nil {
+		panic(err)
+	}
+
+	board := parseLargeBoard(string(bytes))
+
+	expectedScore := 44169
+
+	config := gameCache{
+		pathMemo:     map[int]path{},
+		distanceMemo: map[int]int{},
+		positionMap:  positionMapLarge,
+		winState:     desiredLargeBoard,
+		roomMap:      targetRoomsLarge,
+		roomSize:     4,
+	}
+
+	g := game{state: board}
+
+	for i, v := range perfectMoves {
+		b := g.state
+		possibleMoves := availableDestinations(&b, v.from, &config)
+
+		found := false
+		for _, to := range possibleMoves {
+			if to == v.to {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			t.Errorf("Expected move [%v -> %v] to be possible on step %v", v.from, v.to, i)
+			t.FailNow()
+		}
+
+		g = g.applyMove(v.from, v.to, config)
+
+	}
+
+	if g.score != expectedScore {
+		t.Errorf("Expected a score of %v, not %v\n", expectedScore, g.score)
 	}
 }
