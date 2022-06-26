@@ -86,18 +86,6 @@ func TestParseSmall(t *testing.T) {
 
 }
 
-// 	for position, expectedPod := range expectedBoard {
-// 		if board[position] != expectedPod {
-// 			t.Errorf("Expected pod %s in %v, not %s\n", string(expectedPod), position, string(board[position]))
-// 		}
-// 	}
-
-// 	if len(board) != len(expectedBoard) {
-// 		t.Error("Length mismatch")
-// 	}
-
-// }
-
 func TestPrint(t *testing.T) {
 	board := largeBoard{
 		amphipod('A'),
@@ -125,7 +113,7 @@ func TestPrint(t *testing.T) {
 		amphipod('W'),
 	}
 
-	t.Logf("\n%v\n", board)
+	t.Logf("\n%#v\n", board)
 	t.Fail()
 }
 
@@ -140,18 +128,7 @@ func TestScoreSmall(t *testing.T) {
 
 	expectedScore := 12521
 
-	g := game{state: board}
-
-	config := gameCache{
-		pathMemo:     map[int]path{},
-		distanceMemo: map[int]int{},
-		positionMap:  positionMapLarge,
-		winState:     desiredSmallBoard,
-		roomMap:      targetRooms,
-		roomSize:     2,
-	}
-
-	score := findQuickestMoves(g, &config)
+	score := findQuickestMoves(board, 2, desiredSmallBoard)
 
 	// g.playMoves(&score, &config, 0)
 
@@ -171,18 +148,7 @@ func TestScoreLarge(t *testing.T) {
 
 	expectedScore := 44169
 
-	g := game{state: board}
-
-	config := gameCache{
-		pathMemo:     map[int]path{},
-		distanceMemo: map[int]int{},
-		positionMap:  positionMapLarge,
-		winState:     desiredLargeBoard,
-		roomMap:      targetRooms,
-		roomSize:     4,
-	}
-
-	score := findQuickestMoves(g, &config)
+	score := findQuickestMoves(board, 4, desiredLargeBoard)
 
 	// g.playMoves(&score, &config, 0)
 

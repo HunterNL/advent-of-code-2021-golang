@@ -3,7 +3,6 @@ package day23
 import (
 	"aoc2021/intmath"
 	"container/heap"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -493,17 +492,26 @@ type move struct {
 	to   position
 }
 
-func findQuickestMoves(startPosition game, config *gameCache) int {
+func findQuickestMoves(startPosition largeBoard, roomSize int, winState largeBoard) int {
 	openSet := gameSet{}
 	seenStates := gameMap{}
 
-	heap.Push(&openSet, startPosition)
+	config := gameCache{
+		pathMemo:     map[int]path{},
+		distanceMemo: map[int]int{},
+		positionMap:  positionMapLarge,
+		winState:     winState,
+		roomMap:      targetRooms,
+		roomSize:     roomSize,
+	}
+
+	heap.Push(&openSet, game{state: startPosition})
 
 	for {
 		lowestItem := heap.Pop(&openSet)
 		lowestGame := lowestItem.(game)
 
-		if isWon(lowestGame.state, config) {
+		if isWon(lowestGame.state, &config) {
 			return lowestGame.score
 		}
 
@@ -514,13 +522,13 @@ func findQuickestMoves(startPosition game, config *gameCache) int {
 				continue
 			}
 			from := position(i)
-			for _, to := range availableDestinations(&lowestGame.state, from, config) {
+			for _, to := range availableDestinations(&lowestGame.state, from, &config) {
 				moves = append(moves, move{from: from, to: to})
 			}
 		}
 
 		for _, move := range moves {
-			newGame := lowestGame.applyMove(move.from, move.to, config)
+			newGame := lowestGame.applyMove(move.from, move.to, &config)
 
 			if score, found := seenStates[newGame.state]; found {
 				if newGame.score < score {
@@ -545,47 +553,11 @@ func Solve() (int, int) {
 		panic(err)
 	}
 
-	configp1 := gameCache{
-		pathMemo:     map[int]path{},
-		distanceMemo: map[int]int{},
-		positionMap:  positionMapLarge,
-		winState:     desiredSmallBoard,
-		roomMap:      targetRooms,
-		roomSize:     2,
-	}
-
-	// p1 := solveP1()
 	boardP1 := parseBoard(string(bytes), PARSE_SMALL)
-	p1Score := findQuickestMoves(game{state: boardP1}, &configp1)
+	boardP2 := parseBoard(string(bytes), PARSE_LARGE)
 
-	board := parseBoard(string(bytes), PARSE_LARGE)
+	scoreP1 := findQuickestMoves(boardP1, 2, desiredSmallBoard)
+	scoreP2 := findQuickestMoves(boardP2, 4, desiredLargeBoard)
 
-	g := game{state: board}
-
-	config := gameCache{
-		pathMemo:     map[int]path{},
-		distanceMemo: map[int]int{},
-		positionMap:  positionMapLarge,
-		winState:     desiredLargeBoard,
-		roomMap:      targetRooms,
-		roomSize:     4,
-	}
-
-	score := findQuickestMoves(g, &config)
-
-	// allGames := []game{}
-
-	fmt.Printf("Starting board:\n\n%v\n\n", g.state)
-
-	// var score int = math.MaxInt
-
-	// g.playMoves(&score, &cache, 0)
-
-	// score := lowestScore(allGames)
-
-	fmt.Printf("Lowest score:%v\n", score)
-
-	// fmt.Println(p1, score)
-
-	return p1Score, score
+	return scoreP1, scoreP2
 }
