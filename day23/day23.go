@@ -9,7 +9,6 @@ import (
 )
 
 type path []position
-type pathSpec struct{ from, to position }
 
 type vec2 struct {
 	x, y int
@@ -19,30 +18,8 @@ const BOARD_SIZE = 23
 
 type largeBoard [BOARD_SIZE]amphipod
 
-type board interface {
-	distance(position, position) int
-	move(position, position)
-	amphipodAt(position) amphipod
-	homeForPod(amphipod) (position, position)
-	isWon() bool
-}
-
-func (board *largeBoard) distance(a position, b position) int {
-	panic("not implemented") // TODO: Implement
-}
-
-func (b *largeBoard) move(from position, to position) {
-	b[to] = b[from]
-	b[from] = amphipod(0)
-}
-
 func (b *largeBoard) amphipodAt(i position) amphipod {
 	return b[i]
-}
-
-func (b *largeBoard) homeForPod(pod amphipod) (position, position) {
-	start := targetRoomsLarge[pod]
-	return start, start + 4
 }
 
 type gameSet []game
@@ -144,40 +121,13 @@ func isInHallway(p position) bool {
 	return p < 7
 }
 
-// var pathMemo = make(map[int]path)
-var pathCostMemo = make(map[int]int)
-
-// var roomA1 = {2, 1}
-// var roomA2 = {2, 2}
-// var roomB1 = {4, 1}
-// var roomB2 = {4, 2}
-// var roomC1 = {6, 1}
-// var roomC2 = {6, 2}
-// var roomD1 = {8, 1}
-// var roomD2 = {8, 2}
 const HallwaySize = 7
-
 const RoomSize = 4
 
-//
 var roomA = position(HallwaySize + RoomSize*0)
 var roomB = position(HallwaySize + RoomSize*1)
 var roomC = position(HallwaySize + RoomSize*2)
 var roomD = position(HallwaySize + RoomSize*3)
-
-// var hallwayPositions = []position{
-// 	{0, 0},
-// 	{1, 0},
-// 	// {2, 0},
-// 	{3, 0},
-// 	// {4, 0},
-// 	{5, 0},
-// 	// {6, 0},
-// 	{7, 0},
-// 	// {8, 0},
-// 	{9, 0},
-// 	{10, 0},
-// }
 
 var desiredLargeBoard = [BOARD_SIZE]amphipod{
 	amphipod(0),
@@ -231,7 +181,7 @@ var desiredSmallBoard = [BOARD_SIZE]amphipod{
 	amphipod(0),
 }
 
-var targetRoomsLarge = map[amphipod]position{
+var targetRooms = map[amphipod]position{
 	'A': roomA,
 	'B': roomB,
 	'C': roomC,
@@ -246,30 +196,6 @@ func sign(a int) int {
 	}
 }
 
-// func (b board) isBlocker(pos position) bool {
-// 	pod := b[pos]
-// 	roomPositions := targetRooms[pod]
-// 	return isEqual(roomPositions[0], pos) && b[roomPositions[1]] != pod
-// }
-
-// func roomIsEmpty(b board, pod amphipod) bool {
-// 	start, end := b.homeForPod(pod)
-// 	for i := start; i < end; i++ {
-// 		if b.amphipodAt(i) != amphipod(0) {
-// 			return false
-// 		}
-// 	}
-
-// 	return true
-// }
-
-// func (b board) canLeaveRoom(pos position) bool {
-
-// 	roomPositions := targetRooms[pod]
-// 	return isEqual(roomPositions[0], pos) && b[roomPositions[1]] != pod
-
-// }
-
 func shouldLeaveHome(b *largeBoard, pos position, config *gameCache) bool {
 	pod := b.amphipodAt(pos)
 	start, end := podHomePositions(pod, config)
@@ -281,8 +207,6 @@ func shouldLeaveHome(b *largeBoard, pos position, config *gameCache) bool {
 
 	return false
 }
-
-// type board [23]amphipod
 
 func availableDestinations(b *largeBoard, currentPosition position, cache *gameCache) []position {
 	pod := b.amphipodAt(currentPosition)
@@ -310,17 +234,6 @@ func availableDestinations(b *largeBoard, currentPosition position, cache *gameC
 	}
 
 	return []position{}
-
-	// panic("Unknown state")
-}
-
-// func isInTargetRoom(pod amphipod, currentPosition position) bool {
-// 	targetPositions := targetRooms[pod]
-// 	return currentPosition == targetPositions[0] || currentPosition == targetPositions[1]
-// }
-
-func roomIsEnpty(b board, startPos position) {
-
 }
 
 func findHomePosition(b *largeBoard, pod amphipod, config *gameCache) position {
@@ -335,36 +248,19 @@ func findHomePosition(b *largeBoard, pod amphipod, config *gameCache) position {
 }
 
 func canEnterHome(b *largeBoard, pod amphipod, config *gameCache) bool {
-	// fmt.Println(string(pod))
-	// fmt.Print(rune('\n'))
-	// fmt.Print(render(*b, positionMapLarge))
 	start, end := podHomePositions(pod, config)
 
 	for i := end; i >= start; i-- {
 		if b[i] != pod && b[i] != amphipod(0) {
-			// fmt.Println("false")
 			return false // Cannot enter if there's other kinds of amphipods present
 		}
 	}
-	// fmt.Println("true")
 	return true
-
-	// panic("Unknown state")
 }
 
 func podHomePositions(pod amphipod, config *gameCache) (position, position) {
-	return targetRoomsLarge[pod], targetRoomsLarge[pod] + position(config.roomSize) - 1
+	return targetRooms[pod], targetRooms[pod] + position(config.roomSize) - 1
 }
-
-// func roomTargetForPod(b *board, pod amphipod) position {
-// 	top, bottom := podHomePositions(pod)
-
-// 	if isOccupied(b, bottom) {
-// 		return top
-// 	} else {
-// 		return bottom
-// 	}
-// }
 
 func canPathTo(b *largeBoard, from, to position, cache *gameCache) bool {
 	if isOccupied(b, to) {
@@ -454,31 +350,12 @@ type gameCache struct {
 	winState     largeBoard
 }
 
-// func (b board) isWon() bool {
-// 	return b == desiredLargeBoard
-// }
-
 var costMap = map[amphipod]int{
 	amphipod('A'): 1,
 	amphipod('B'): 10,
 	amphipod('C'): 100,
 	amphipod('D'): 1000,
 }
-
-// func cost(from, to position, pod amphipod) int {
-// 	cost := costMap[pod]
-// 	memoScore, memoFound := pathCostMemo[int(from*100+to)]
-
-// 	if memoFound {
-// 		return memoScore * cost
-// 	}
-
-// 	distance := manhatten(positionMap[from], positionMap[to])
-
-// 	pathCostMemo[int(from*100+to)] = distance
-
-// 	return distance * cost
-// }
 
 func distance(cache *gameCache, from, to position) int {
 	return manhatten(cache.positionMap[from], cache.positionMap[to])
@@ -493,67 +370,6 @@ func (g game) applyMove(from, to position, cache *gameCache) game {
 	g.fScore = g.score + hueristic(g, cache)
 
 	return g
-}
-
-// func (g game) applyMove(from, to position) game {
-// 	out := game{state: g.state, score: g.score}
-// 	pod := out.state[from]
-// 	out.state[from] = amphipod(0)
-// 	out.state[to] = pod
-// 	out.score += cost(from, to, pod)
-
-// 	return out
-// }
-
-var printDebug bool = false
-
-func (g game) playMoves(lowScore *int, cache *gameCache, iterCount int) {
-	if isWon(g.state, cache) {
-		if g.score < *lowScore {
-			*lowScore = g.score
-			fmt.Println(g.score)
-		}
-		return
-	}
-
-	if g.score > *lowScore {
-		return // Optimization, we're never going to beat the highscore, abort
-	}
-
-	// fmt.Print("----------------------------------------------\n")
-	// fmt.Print("Current state:\n")
-	// fmt.Print(render(g.state, cache.positionMap))
-
-	// Start at the end, play around with the heavy hitting amphipods first
-	for pos := position(22); pos >= 0; pos-- {
-		if !isOccupied((*largeBoard)(&g.state), pos) {
-			continue
-		}
-
-		movements := availableDestinations((*largeBoard)(&g.state), pos, cache)
-
-		if len(movements) == 0 {
-			continue
-		}
-
-		// fmt.Printf("Position %v (%v) has %v movements available\n", pos, positionMap[pos], len(movements))
-		// fmt.Printf("Current state:\n%v\n", g.state)
-
-		// movements = availableDestinations((*largeBoard)(&g.state), pos, cache)
-
-		// fmt.Print(len(movements))
-
-		for _, to := range movements {
-
-			// fmt.Printf("From %v to %v (%v to %v)\n", pos, to, cache.positionMap[pos], cache.positionMap[to])
-			// fmt.Print(render(g.state, cache.positionMap))
-
-			newGame := g.applyMove(pos, to, cache)
-			// fmt.Print(render(newGame.state, cache.positionMap))
-
-			newGame.playMoves(lowScore, cache, iterCount+1)
-		}
-	}
 }
 
 func isWon(board largeBoard, cache *gameCache) bool {
@@ -633,16 +449,6 @@ func parseBoard(s string, mode parsemode) largeBoard {
 
 	return board
 }
-
-// func lowestScore(games []game) int {
-// 	out := games[0].score
-// 	for i := 1; i < len(games); i++ {
-// 		if games[i].score < out {
-// 			out = games[i].score
-// 		}
-// 	}
-// 	return out
-// }
 
 func hueristic(g game, config *gameCache) int {
 	out := 0
@@ -744,7 +550,7 @@ func Solve() (int, int) {
 		distanceMemo: map[int]int{},
 		positionMap:  positionMapLarge,
 		winState:     desiredSmallBoard,
-		roomMap:      targetRoomsLarge,
+		roomMap:      targetRooms,
 		roomSize:     2,
 	}
 
@@ -761,7 +567,7 @@ func Solve() (int, int) {
 		distanceMemo: map[int]int{},
 		positionMap:  positionMapLarge,
 		winState:     desiredLargeBoard,
-		roomMap:      targetRoomsLarge,
+		roomMap:      targetRooms,
 		roomSize:     4,
 	}
 

@@ -147,7 +147,7 @@ func TestScoreSmall(t *testing.T) {
 		distanceMemo: map[int]int{},
 		positionMap:  positionMapLarge,
 		winState:     desiredSmallBoard,
-		roomMap:      targetRoomsLarge,
+		roomMap:      targetRooms,
 		roomSize:     2,
 	}
 
@@ -178,7 +178,7 @@ func TestScoreLarge(t *testing.T) {
 		distanceMemo: map[int]int{},
 		positionMap:  positionMapLarge,
 		winState:     desiredLargeBoard,
-		roomMap:      targetRoomsLarge,
+		roomMap:      targetRooms,
 		roomSize:     4,
 	}
 
@@ -238,7 +238,7 @@ func TestPerfectMovement(t *testing.T) {
 		distanceMemo: map[int]int{},
 		positionMap:  positionMapLarge,
 		winState:     desiredLargeBoard,
-		roomMap:      targetRoomsLarge,
+		roomMap:      targetRooms,
 		roomSize:     4,
 	}
 
