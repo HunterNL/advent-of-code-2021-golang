@@ -199,13 +199,9 @@ func TestPerfectMovement(t *testing.T) {
 
 	expectedScore := 44169
 
-	config := gameCache{
-		pathMemo:     map[int]path{},
-		distanceMemo: map[int]int{},
-		positionMap:  positionMap,
-		winState:     desiredLargeBoard,
-		roomMap:      targetRooms,
-		roomSize:     4,
+	config := gameConfig{
+		winState: desiredLargeBoard,
+		roomSize: 4,
 	}
 
 	g := game{state: board}

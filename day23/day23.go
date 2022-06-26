@@ -7,62 +7,42 @@ import (
 	"strings"
 )
 
-type path []position
+const BOARD_SIZE = 23
+
+// Array holding all amphipod positions
+type board [BOARD_SIZE]amphipod
+
+// Frequently copied game data
+type game struct {
+	state     board
+	score     int
+	fScore    int
+	heapIndex int
+}
+
+type gameConfig struct {
+	roomSize int
+	winState board
+}
+
+var costMap = map[amphipod]int{
+	amphipod('A'): 1,
+	amphipod('B'): 10,
+	amphipod('C'): 100,
+	amphipod('D'): 1000,
+}
+
+type amphipod byte
+type position int
+
+// Global memoization of paths between two points, hashed as x*100+y
+var pathMemo = map[int]path{}
 
 type vec2 struct {
 	x, y int
 }
 
-const BOARD_SIZE = 23
-
-type board [BOARD_SIZE]amphipod
-
-func (b *board) amphipodAt(i position) amphipod {
-	return b[i]
-}
-
-type gameSet []game
-type gameMap map[board]int
-
-// Len is the number of elements in the collection.
-func (gs gameSet) Len() int {
-	return len(gs)
-}
-
-func (gs gameSet) Less(i int, j int) bool {
-	return gs[i].fScore < gs[j].fScore
-}
-
-// Swap swaps the elements with indexes i and j.
-func (gs gameSet) Swap(i int, j int) {
-	gs[i], gs[j] = gs[j], gs[i]
-	gs[i].heapIndex = i
-	gs[j].heapIndex = j
-}
-
-func (gs *gameSet) Push(x any) {
-	n := len(*gs)
-	item := x.(game)
-	item.heapIndex = n
-	*gs = append(*gs, item)
-}
-
-func (gs *gameSet) Pop() any {
-	old := *gs
-	n := len(old)
-	item := old[n-1]
-	// old[n-1] = nil      // avoid memory leak
-	item.heapIndex = -1 // for safety
-	*gs = old[0 : n-1]
-	return item
-}
-
-// type smallBoard [15]amphipod
-
-type amphipod byte
-type position int
-type pathMemo map[int]path
-
+// We can reuse this for day 1, roomsize is given and taken into account
 var positionMap = [BOARD_SIZE]vec2{
 	0:  {0, 0},
 	1:  {1, 0},
@@ -71,38 +51,22 @@ var positionMap = [BOARD_SIZE]vec2{
 	4:  {7, 0},
 	5:  {9, 0},
 	6:  {10, 0},
-	7:  {2, 1}, //R1
+	7:  {2, 1}, //Room 1
 	8:  {2, 2},
 	9:  {2, 3},
 	10: {2, 4},
-	11: {4, 1}, //R2
+	11: {4, 1}, //Room 2
 	12: {4, 2},
 	13: {4, 3},
 	14: {4, 4},
-	15: {6, 1}, //R3
+	15: {6, 1}, //Room 3
 	16: {6, 2},
 	17: {6, 3},
 	18: {6, 4},
-	19: {8, 1}, //R4
+	19: {8, 1}, //Room 4
 	20: {8, 2},
 	21: {8, 3},
 	22: {8, 4},
-}
-
-func findVectorIndex(v vec2, positionMap *[BOARD_SIZE]vec2) int {
-	if v.y == 0 {
-		if v.x == 2 || v.x == 4 || v.x == 6 || v.x == 8 {
-			return -1 // No positions needed for places we can't stand
-		}
-	}
-
-	for key, value := range *positionMap {
-		if v.x == value.x && v.y == value.y {
-			return key
-		}
-	}
-
-	panic("Did not find vector")
 }
 
 func manhatten(v1, v2 vec2) int {
@@ -128,7 +92,7 @@ var roomB = position(HallwaySize + RoomSize*1)
 var roomC = position(HallwaySize + RoomSize*2)
 var roomD = position(HallwaySize + RoomSize*3)
 
-var desiredLargeBoard = [BOARD_SIZE]amphipod{
+var desiredLargeBoard = board{
 	amphipod(0),
 	amphipod(0),
 	amphipod(0),
@@ -195,11 +159,11 @@ func sign(a int) int {
 	}
 }
 
-func shouldLeaveHome(b *board, pos position, config *gameCache) bool {
-	pod := b.amphipodAt(pos)
+func shouldLeaveHome(b *board, pos position, config *gameConfig) bool {
+	pod := b[pos]
 	start, end := podHomePositions(pod, config)
 	for i := start + 1; i <= end; i++ {
-		if b.amphipodAt(i) != pod && isOccupied(b, i) {
+		if b[i] != pod && isOccupied(b, i) {
 			return true // If any amphipods behind the given are different, allow a move out
 		}
 	}
@@ -207,8 +171,8 @@ func shouldLeaveHome(b *board, pos position, config *gameCache) bool {
 	return false
 }
 
-func availableDestinations(b *board, currentPosition position, cache *gameCache) []position {
-	pod := b.amphipodAt(currentPosition)
+func availableDestinations(b *board, currentPosition position, cache *gameConfig) []position {
+	pod := b[currentPosition]
 	out := make([]position, 0, 16)
 
 	if isHome(pod, currentPosition) && !shouldLeaveHome(b, currentPosition, cache) {
@@ -235,7 +199,7 @@ func availableDestinations(b *board, currentPosition position, cache *gameCache)
 	return []position{}
 }
 
-func findHomePosition(b *board, pod amphipod, config *gameCache) position {
+func findHomePosition(b *board, pod amphipod, config *gameConfig) position {
 	start, end := podHomePositions(pod, config)
 	for position := end; position >= start; position-- {
 		if !isOccupied(b, position) {
@@ -246,7 +210,7 @@ func findHomePosition(b *board, pod amphipod, config *gameCache) position {
 	panic("Unkown state, room full")
 }
 
-func canEnterHome(b *board, pod amphipod, config *gameCache) bool {
+func canEnterHome(b *board, pod amphipod, config *gameConfig) bool {
 	start, end := podHomePositions(pod, config)
 
 	for i := end; i >= start; i-- {
@@ -257,16 +221,16 @@ func canEnterHome(b *board, pod amphipod, config *gameCache) bool {
 	return true
 }
 
-func podHomePositions(pod amphipod, config *gameCache) (position, position) {
+func podHomePositions(pod amphipod, config *gameConfig) (position, position) {
 	return targetRooms[pod], targetRooms[pod] + position(config.roomSize) - 1
 }
 
-func canPathTo(b *board, from, to position, cache *gameCache) bool {
+func canPathTo(b *board, from, to position, cache *gameConfig) bool {
 	if isOccupied(b, to) {
 		return false
 	}
 
-	path := createPath(from, to, cache)
+	path := createPath(from, to)
 	for _, pos := range path {
 		if isOccupied(b, pos) {
 			return false
@@ -276,20 +240,22 @@ func canPathTo(b *board, from, to position, cache *gameCache) bool {
 	return true
 }
 
-func createPath(from, to position, cache *gameCache) []position {
+type path []position
+
+func createPath(from, to position) []position {
 	if from == to {
 		panic("Positions are equal")
 	}
 
-	memoPath, memoFound := cache.pathMemo[int(from*100+to)]
-	positionMap := cache.positionMap
+	memoPath, memoFound := pathMemo[int(from*100+to)]
+	positionMap := positionMap
 
 	if memoFound {
 		return memoPath
 	}
 
-	current := cache.positionMap[from]
-	target := cache.positionMap[to]
+	current := positionMap[from]
+	target := positionMap[to]
 
 	out := make([]position, 0, 10)
 	xDir := sign(target.x - current.x)
@@ -322,45 +288,37 @@ func createPath(from, to position, cache *gameCache) []position {
 		addYPath()
 	}
 
-	cache.pathMemo[int(from*100+to)] = out
+	pathMemo[int(from*100+to)] = out
 
 	return out
+}
+
+// For mapping a vector back to a board index
+func findVectorIndex(v vec2, positionMap *[BOARD_SIZE]vec2) int {
+	if v.y == 0 {
+		if v.x == 2 || v.x == 4 || v.x == 6 || v.x == 8 {
+			return -1 // No positions needed for places we can't stand
+		}
+	}
+
+	for key, value := range *positionMap {
+		if v.x == value.x && v.y == value.y {
+			return key
+		}
+	}
+
+	panic("Did not find vector")
 }
 
 func isOccupied(b *board, pos position) bool {
 	return b[pos] != amphipod(0)
 }
 
-// Frequently copied game data
-type game struct {
-	state     board
-	score     int
-	fScore    int
-	heapIndex int
+func distance(cache *gameConfig, from, to position) int {
+	return manhatten(positionMap[from], positionMap[to])
 }
 
-// Data commonly referenced and altered but not copied around
-type gameCache struct {
-	pathMemo     pathMemo
-	distanceMemo map[int]int
-	positionMap  [BOARD_SIZE]vec2
-	roomMap      map[amphipod]position
-	roomSize     int
-	winState     board
-}
-
-var costMap = map[amphipod]int{
-	amphipod('A'): 1,
-	amphipod('B'): 10,
-	amphipod('C'): 100,
-	amphipod('D'): 1000,
-}
-
-func distance(cache *gameCache, from, to position) int {
-	return manhatten(cache.positionMap[from], cache.positionMap[to])
-}
-
-func (g game) applyMove(from, to position, cache *gameCache) game {
+func (g game) applyMove(from, to position, cache *gameConfig) game {
 	g.state[to] = g.state[from]
 	g.state[from] = amphipod(0)
 
@@ -371,7 +329,7 @@ func (g game) applyMove(from, to position, cache *gameCache) game {
 	return g
 }
 
-func isWon(b board, cache *gameCache) bool {
+func isWon(b board, cache *gameConfig) bool {
 	return b == cache.winState
 }
 
@@ -449,7 +407,7 @@ func parseBoard(s string, mode parsemode) board {
 	return out
 }
 
-func hueristic(g game, config *gameCache) int {
+func hueristic(g game, config *gameConfig) int {
 	out := 0
 	for i, pod := range g.state {
 		pos := position(i)
@@ -479,10 +437,10 @@ func hueristic(g game, config *gameCache) int {
 	return out
 }
 
-func minDistanceHome(pos position, pod amphipod, config *gameCache) int {
+func minDistanceHome(pos position, pod amphipod, config *gameConfig) int {
 	homeStart, _ := podHomePositions(pod, config)
-	from := config.positionMap[pos]
-	to := config.positionMap[homeStart]
+	from := positionMap[pos]
+	to := positionMap[homeStart]
 
 	return from.y + to.y + (to.x - from.x)
 }
@@ -493,16 +451,13 @@ type move struct {
 }
 
 func findQuickestMoves(startPosition board, roomSize int, winState board) int {
+
 	openSet := gameSet{}
 	seenStates := gameMap{}
 
-	config := gameCache{
-		pathMemo:     map[int]path{},
-		distanceMemo: map[int]int{},
-		positionMap:  positionMap,
-		winState:     winState,
-		roomMap:      targetRooms,
-		roomSize:     roomSize,
+	config := gameConfig{
+		winState: winState,
+		roomSize: roomSize,
 	}
 
 	heap.Push(&openSet, game{state: startPosition})
@@ -560,4 +515,41 @@ func Solve() (int, int) {
 	scoreP2 := findQuickestMoves(boardP2, 4, desiredLargeBoard)
 
 	return scoreP1, scoreP2
+}
+
+type gameSet []game
+type gameMap map[board]int
+
+// Implementation of heap.Interface
+// Len is the number of elements in the collection.
+func (gs gameSet) Len() int {
+	return len(gs)
+}
+
+func (gs gameSet) Less(i int, j int) bool {
+	return gs[i].fScore < gs[j].fScore
+}
+
+// Swap swaps the elements with indexes i and j.
+func (gs gameSet) Swap(i int, j int) {
+	gs[i], gs[j] = gs[j], gs[i]
+	gs[i].heapIndex = i
+	gs[j].heapIndex = j
+}
+
+func (gs *gameSet) Push(x any) {
+	n := len(*gs)
+	item := x.(game)
+	item.heapIndex = n
+	*gs = append(*gs, item)
+}
+
+func (gs *gameSet) Pop() any {
+	old := *gs
+	n := len(old)
+	item := old[n-1]
+	// old[n-1] = nil      // avoid memory leak
+	item.heapIndex = -1 // for safety
+	*gs = old[0 : n-1]
+	return item
 }
