@@ -1,7 +1,6 @@
 package day23
 
 import (
-	"math"
 	"os"
 	"testing"
 )
@@ -112,18 +111,13 @@ func TestScore(t *testing.T) {
 		roomSize:     4,
 	}
 
-	score := math.MaxInt
+	score := findQuickestMoves(g, &config)
 
-	g.playMoves(&score, &config, 0)
+	// g.playMoves(&score, &config, 0)
 
 	if score != expectedScore {
 		t.Errorf("Expected a score of %v, not %v\n", expectedScore, score)
 	}
-}
-
-type move struct {
-	from position
-	to   position
 }
 
 var perfectMoves = []move{
@@ -196,7 +190,7 @@ func TestPerfectMovement(t *testing.T) {
 			t.FailNow()
 		}
 
-		g = g.applyMove(v.from, v.to, config)
+		g = g.applyMove(v.from, v.to, &config)
 
 	}
 

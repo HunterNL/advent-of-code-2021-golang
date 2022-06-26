@@ -2,8 +2,8 @@ package day23
 
 import (
 	"aoc2021/intmath"
+	"container/heap"
 	"fmt"
-	"math"
 	"os"
 	"strings"
 )
@@ -43,6 +43,42 @@ func (b *largeBoard) amphipodAt(i position) amphipod {
 func (b *largeBoard) homeForPod(pod amphipod) (position, position) {
 	start := targetRoomsLarge[pod]
 	return start, start + 4
+}
+
+type gameSet []game
+type gameMap map[largeBoard]int
+
+// Len is the number of elements in the collection.
+func (gs gameSet) Len() int {
+	return len(gs)
+}
+
+func (gs gameSet) Less(i int, j int) bool {
+	return gs[i].fScore < gs[j].fScore
+}
+
+// Swap swaps the elements with indexes i and j.
+func (gs gameSet) Swap(i int, j int) {
+	gs[i], gs[j] = gs[j], gs[i]
+	gs[i].heapIndex = i
+	gs[j].heapIndex = j
+}
+
+func (gs *gameSet) Push(x any) {
+	n := len(*gs)
+	item := x.(game)
+	item.heapIndex = n
+	*gs = append(*gs, item)
+}
+
+func (gs *gameSet) Pop() any {
+	old := *gs
+	n := len(old)
+	item := old[n-1]
+	// old[n-1] = nil      // avoid memory leak
+	item.heapIndex = -1 // for safety
+	*gs = old[0 : n-1]
+	return item
 }
 
 // type smallBoard [15]amphipod
@@ -375,8 +411,10 @@ func isOccupied(b *largeBoard, pos position) bool {
 
 // Frequently copied game data
 type game struct {
-	state largeBoard
-	score int
+	state     largeBoard
+	score     int
+	fScore    int
+	heapIndex int
 }
 
 // Data commonly referenced and altered but not copied around
@@ -415,15 +453,17 @@ var costMap = map[amphipod]int{
 // 	return distance * cost
 // }
 
-func distance(cache gameCache, from, to position) int {
+func distance(cache *gameCache, from, to position) int {
 	return manhatten(cache.positionMap[from], cache.positionMap[to])
 }
 
-func (g game) applyMove(from, to position, cache gameCache) game {
+func (g game) applyMove(from, to position, cache *gameCache) game {
 	g.state[to] = g.state[from]
 	g.state[from] = amphipod(0)
 
 	g.score += distance(cache, from, to) * costMap[g.state[to]]
+
+	g.fScore = g.score + hueristic(g, cache)
 
 	return g
 }
@@ -481,7 +521,7 @@ func (g game) playMoves(lowScore *int, cache *gameCache, iterCount int) {
 			// fmt.Printf("From %v to %v (%v to %v)\n", pos, to, cache.positionMap[pos], cache.positionMap[to])
 			// fmt.Print(render(g.state, cache.positionMap))
 
-			newGame := g.applyMove(pos, to, *cache)
+			newGame := g.applyMove(pos, to, cache)
 			// fmt.Print(render(newGame.state, cache.positionMap))
 
 			newGame.playMoves(lowScore, cache, iterCount+1)
@@ -497,7 +537,7 @@ func render(b largeBoard, pm [BOARD_SIZE]vec2) string {
 	lines := make([][]byte, 5)
 
 	for i := 0; i < 5; i++ {
-		lines[i] = []byte("...........")
+		lines[i] = []byte("###########")
 	}
 
 	for pos, pod := range b {
@@ -558,6 +598,95 @@ func parseLargeBoard(s string) largeBoard {
 // 	return out
 // }
 
+func hueristic(g game, config *gameCache) int {
+	out := 0
+	for i, pod := range g.state {
+		pos := position(i)
+		if pod == amphipod(0) {
+			continue
+		}
+
+		if isHome(pod, pos) {
+			if shouldLeaveHome(&g.state, pos) { // Blocking something, gotta move
+				homeEntry, _ := podHomePositions(pod)
+				out += (int(pos-homeEntry) + 2) * costMap[pod] // 2 is the minimal distance required to leave a room
+			}
+			continue
+		}
+		// Pod is in hallway or wrong room
+		if isInHallway(pos) {
+			target, _ := podHomePositions(pod)
+
+			out += (distance(config, pos, target) * costMap[pod])
+			continue
+		}
+
+		//Pod is in wrong room
+		out += minDistanceHome(pos, pod, config) * costMap[pod]
+	}
+
+	return out
+}
+
+func minDistanceHome(pos position, pod amphipod, config *gameCache) int {
+	homeStart, _ := podHomePositions(pod)
+	from := config.positionMap[pos]
+	to := config.positionMap[homeStart]
+
+	return from.y + to.y + (to.x - from.x)
+}
+
+type move struct {
+	from position
+	to   position
+}
+
+func findQuickestMoves(startPosition game, config *gameCache) int {
+	openSet := gameSet{}
+	seenStates := gameMap{}
+
+	heap.Push(&openSet, startPosition)
+
+	for {
+		lowestItem := heap.Pop(&openSet)
+		lowestGame := lowestItem.(game)
+
+		if isWon(lowestGame.state, config) {
+			return lowestGame.score
+		}
+
+		moves := []move{}
+
+		for i, pod := range lowestGame.state {
+			if pod == amphipod(0) {
+				continue
+			}
+			from := position(i)
+			for _, to := range availableDestinations(&lowestGame.state, from, config) {
+				moves = append(moves, move{from: from, to: to})
+			}
+		}
+
+		for _, move := range moves {
+			newGame := lowestGame.applyMove(move.from, move.to, config)
+
+			if score, found := seenStates[newGame.state]; found {
+				if newGame.score < score {
+					seenStates[newGame.state] = score
+				} else {
+					// State already exists, with a better score, don't bother
+					continue
+				}
+			} else {
+				seenStates[newGame.state] = newGame.score
+			}
+
+			heap.Push(&openSet, newGame)
+
+		}
+	}
+}
+
 func Solve() (int, int) {
 	bytes, err := os.ReadFile("./day23/input.txt")
 
@@ -567,18 +696,28 @@ func Solve() (int, int) {
 		panic(err)
 	}
 
-	cache := gameCache{}
 	board := parseLargeBoard(string(bytes))
 
 	g := game{state: board}
+
+	config := gameCache{
+		pathMemo:     map[int]path{},
+		distanceMemo: map[int]int{},
+		positionMap:  positionMapLarge,
+		winState:     desiredLargeBoard,
+		roomMap:      targetRoomsLarge,
+		roomSize:     4,
+	}
+
+	score := findQuickestMoves(g, &config)
 
 	// allGames := []game{}
 
 	fmt.Printf("Starting board:\n\n%v\n\n", g.state)
 
-	var score int = math.MaxInt
+	// var score int = math.MaxInt
 
-	g.playMoves(&score, &cache, 0)
+	// g.playMoves(&score, &cache, 0)
 
 	// score := lowestScore(allGames)
 
