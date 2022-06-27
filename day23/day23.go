@@ -11,18 +11,198 @@ const BOARD_SIZE = 23
 
 // Array holding all amphipod positions
 type board [BOARD_SIZE]amphipod
+type amphipod byte
+type position int
 
-// Frequently copied game data
+func findQuickestMoves(startPosition board, roomSize int, winState board) int {
+
+	openSet := gameSet{}
+	seenStates := make(map[board]int, 0)
+
+	config := gameConfig{
+		winState: winState,
+		roomSize: roomSize,
+	}
+
+	heap.Push(&openSet, game{state: startPosition})
+
+	for {
+		lowestItem := heap.Pop(&openSet)
+		lowestGame := lowestItem.(game)
+
+		if isWon(lowestGame.state, &config) {
+			return lowestGame.score
+		}
+
+		moves := []move{}
+
+		for i, pod := range lowestGame.state {
+			if pod == amphipod(0) {
+				continue
+			}
+			from := position(i)
+			for _, to := range availableDestinations(&lowestGame.state, from, &config) {
+				moves = append(moves, move{from: from, to: to})
+			}
+		}
+
+		for _, move := range moves {
+			newGame := lowestGame.applyMove(move.from, move.to, &config)
+
+			if score, found := seenStates[newGame.state]; found {
+				if newGame.score < score {
+					seenStates[newGame.state] = score
+				} else {
+					// State already exists, with a better score, don't bother
+					continue
+				}
+			} else {
+				seenStates[newGame.state] = newGame.score
+			}
+
+			heap.Push(&openSet, newGame)
+
+		}
+	}
+}
+
+func availableDestinations(b *board, currentPosition position, cache *gameConfig) []position {
+	pod := b[currentPosition]
+	out := make([]position, 0, 16)
+
+	if isHome(pod, currentPosition) && !shouldLeaveHome(b, currentPosition, cache) {
+		return out
+	}
+
+	if isInRoom(currentPosition) {
+		for targetPosition := position(6); targetPosition >= 0; targetPosition-- {
+			if canPathTo(b, currentPosition, targetPosition, cache) {
+				out = append(out, targetPosition)
+			}
+		}
+		return out
+	}
+
+	if isInHallway(currentPosition) && canEnterHome(b, pod, cache) {
+		roomPos := findHomePosition(b, pod, cache)
+		if canPathTo(b, currentPosition, roomPos, cache) {
+			out = append(out, roomPos)
+		}
+		return out
+	}
+
+	return []position{}
+}
+
+func (g game) applyMove(from, to position, cache *gameConfig) game {
+	g.state[to] = g.state[from]
+	g.state[from] = amphipod(0)
+
+	g.score += distance(cache, from, to) * costMap[g.state[to]]
+
+	g.fScore = g.score + hueristic(g, cache)
+
+	return g
+}
+
+func hueristic(g game, config *gameConfig) int {
+	out := 0
+	for i, pod := range g.state {
+		pos := position(i)
+		if pod == amphipod(0) {
+			continue
+		}
+
+		if isHome(pod, pos) {
+			if shouldLeaveHome(&g.state, pos, config) { // Blocking something, gotta move
+				homeEntry, _ := podHomePositions(pod, config)
+				out += (int(pos-homeEntry) + 2) * costMap[pod] // 2 is the minimal distance required to leave a room
+			}
+			continue
+		}
+		// Pod is in hallway or wrong room
+		if isInHallway(pos) {
+			target, _ := podHomePositions(pod, config)
+
+			out += (distance(config, pos, target) * costMap[pod])
+			continue
+		}
+
+		//Pod is in wrong room
+		out += minDistanceHome(pos, pod, config) * costMap[pod]
+	}
+
+	return out
+}
+
+// Start movement logic
+
+// An amphipod should leave home if it's blocking a different type amphipod from leaving
+func shouldLeaveHome(b *board, pos position, config *gameConfig) bool {
+	pod := b[pos]
+	start, end := podHomePositions(pod, config)
+	for i := start + 1; i <= end; i++ {
+		if b[i] != pod && isOccupied(b, i) {
+			return true // If any amphipods behind the given are different, allow a move out
+		}
+	}
+
+	return false
+}
+
+func findHomePosition(b *board, pod amphipod, config *gameConfig) position {
+	start, end := podHomePositions(pod, config)
+	for position := end; position >= start; position-- {
+		if !isOccupied(b, position) {
+			return position
+		}
+	}
+
+	panic("Unkown state, room full")
+}
+
+// Amphipod can only enter if no other amphipod types are present
+func canEnterHome(b *board, pod amphipod, config *gameConfig) bool {
+	start, end := podHomePositions(pod, config)
+
+	for i := end; i >= start; i-- {
+		if b[i] != pod && b[i] != amphipod(0) {
+			return false // Cannot enter if there's other kinds of amphipods present
+		}
+	}
+	return true
+}
+
+// Returns the position of the room
+// this also marks the biggest difference between small (part1) and large (part2) board
+// the remaining room slots still exist in the array but aren't considered
+func podHomePositions(pod amphipod, config *gameConfig) (position, position) {
+	return targetRooms[pod], targetRooms[pod] + position(config.roomSize) - 1
+}
+
+func canPathTo(b *board, from, to position, cache *gameConfig) bool {
+	if isOccupied(b, to) {
+		return false
+	}
+
+	path := createPath(from, to)
+	for _, pos := range path {
+		if isOccupied(b, pos) {
+			return false
+		}
+	}
+
+	return true
+}
+
+//End movement logic
+
+// Board with own score, expected score and heap position
 type game struct {
 	state     board
 	score     int
 	fScore    int
 	heapIndex int
-}
-
-type gameConfig struct {
-	roomSize int
-	winState board
 }
 
 var costMap = map[amphipod]int{
@@ -31,9 +211,6 @@ var costMap = map[amphipod]int{
 	amphipod('C'): 100,
 	amphipod('D'): 1000,
 }
-
-type amphipod byte
-type position int
 
 // Global memoization of paths between two points, hashed as x*100+y
 var pathMemo = map[int]path{}
@@ -159,87 +336,6 @@ func sign(a int) int {
 	}
 }
 
-func shouldLeaveHome(b *board, pos position, config *gameConfig) bool {
-	pod := b[pos]
-	start, end := podHomePositions(pod, config)
-	for i := start + 1; i <= end; i++ {
-		if b[i] != pod && isOccupied(b, i) {
-			return true // If any amphipods behind the given are different, allow a move out
-		}
-	}
-
-	return false
-}
-
-func availableDestinations(b *board, currentPosition position, cache *gameConfig) []position {
-	pod := b[currentPosition]
-	out := make([]position, 0, 16)
-
-	if isHome(pod, currentPosition) && !shouldLeaveHome(b, currentPosition, cache) {
-		return out
-	}
-
-	if isInRoom(currentPosition) {
-		for targetPosition := position(6); targetPosition >= 0; targetPosition-- {
-			if canPathTo(b, currentPosition, targetPosition, cache) {
-				out = append(out, targetPosition)
-			}
-		}
-		return out
-	}
-
-	if isInHallway(currentPosition) && canEnterHome(b, pod, cache) {
-		roomPos := findHomePosition(b, pod, cache)
-		if canPathTo(b, currentPosition, roomPos, cache) {
-			out = append(out, roomPos)
-		}
-		return out
-	}
-
-	return []position{}
-}
-
-func findHomePosition(b *board, pod amphipod, config *gameConfig) position {
-	start, end := podHomePositions(pod, config)
-	for position := end; position >= start; position-- {
-		if !isOccupied(b, position) {
-			return position
-		}
-	}
-
-	panic("Unkown state, room full")
-}
-
-func canEnterHome(b *board, pod amphipod, config *gameConfig) bool {
-	start, end := podHomePositions(pod, config)
-
-	for i := end; i >= start; i-- {
-		if b[i] != pod && b[i] != amphipod(0) {
-			return false // Cannot enter if there's other kinds of amphipods present
-		}
-	}
-	return true
-}
-
-func podHomePositions(pod amphipod, config *gameConfig) (position, position) {
-	return targetRooms[pod], targetRooms[pod] + position(config.roomSize) - 1
-}
-
-func canPathTo(b *board, from, to position, cache *gameConfig) bool {
-	if isOccupied(b, to) {
-		return false
-	}
-
-	path := createPath(from, to)
-	for _, pos := range path {
-		if isOccupied(b, pos) {
-			return false
-		}
-	}
-
-	return true
-}
-
 type path []position
 
 func createPath(from, to position) []position {
@@ -316,17 +412,6 @@ func isOccupied(b *board, pos position) bool {
 
 func distance(cache *gameConfig, from, to position) int {
 	return manhatten(positionMap[from], positionMap[to])
-}
-
-func (g game) applyMove(from, to position, cache *gameConfig) game {
-	g.state[to] = g.state[from]
-	g.state[from] = amphipod(0)
-
-	g.score += distance(cache, from, to) * costMap[g.state[to]]
-
-	g.fScore = g.score + hueristic(g, cache)
-
-	return g
 }
 
 func isWon(b board, cache *gameConfig) bool {
@@ -407,36 +492,6 @@ func parseBoard(s string, mode parsemode) board {
 	return out
 }
 
-func hueristic(g game, config *gameConfig) int {
-	out := 0
-	for i, pod := range g.state {
-		pos := position(i)
-		if pod == amphipod(0) {
-			continue
-		}
-
-		if isHome(pod, pos) {
-			if shouldLeaveHome(&g.state, pos, config) { // Blocking something, gotta move
-				homeEntry, _ := podHomePositions(pod, config)
-				out += (int(pos-homeEntry) + 2) * costMap[pod] // 2 is the minimal distance required to leave a room
-			}
-			continue
-		}
-		// Pod is in hallway or wrong room
-		if isInHallway(pos) {
-			target, _ := podHomePositions(pod, config)
-
-			out += (distance(config, pos, target) * costMap[pod])
-			continue
-		}
-
-		//Pod is in wrong room
-		out += minDistanceHome(pos, pod, config) * costMap[pod]
-	}
-
-	return out
-}
-
 func minDistanceHome(pos position, pod amphipod, config *gameConfig) int {
 	homeStart, _ := podHomePositions(pod, config)
 	from := positionMap[pos]
@@ -450,56 +505,9 @@ type move struct {
 	to   position
 }
 
-func findQuickestMoves(startPosition board, roomSize int, winState board) int {
-
-	openSet := gameSet{}
-	seenStates := gameMap{}
-
-	config := gameConfig{
-		winState: winState,
-		roomSize: roomSize,
-	}
-
-	heap.Push(&openSet, game{state: startPosition})
-
-	for {
-		lowestItem := heap.Pop(&openSet)
-		lowestGame := lowestItem.(game)
-
-		if isWon(lowestGame.state, &config) {
-			return lowestGame.score
-		}
-
-		moves := []move{}
-
-		for i, pod := range lowestGame.state {
-			if pod == amphipod(0) {
-				continue
-			}
-			from := position(i)
-			for _, to := range availableDestinations(&lowestGame.state, from, &config) {
-				moves = append(moves, move{from: from, to: to})
-			}
-		}
-
-		for _, move := range moves {
-			newGame := lowestGame.applyMove(move.from, move.to, &config)
-
-			if score, found := seenStates[newGame.state]; found {
-				if newGame.score < score {
-					seenStates[newGame.state] = score
-				} else {
-					// State already exists, with a better score, don't bother
-					continue
-				}
-			} else {
-				seenStates[newGame.state] = newGame.score
-			}
-
-			heap.Push(&openSet, newGame)
-
-		}
-	}
+type gameConfig struct {
+	roomSize int
+	winState board
 }
 
 func Solve() (int, int) {
@@ -518,7 +526,6 @@ func Solve() (int, int) {
 }
 
 type gameSet []game
-type gameMap map[board]int
 
 // Implementation of heap.Interface
 // Len is the number of elements in the collection.
