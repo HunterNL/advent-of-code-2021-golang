@@ -208,7 +208,7 @@ func TestPerfectMovement(t *testing.T) {
 
 	for i, v := range perfectMoves {
 		b := g.state
-		possibleMoves := availableDestinations(&b, v.from, &config)
+		possibleMoves := availableDestinations(&b, v.from, config.roomSize)
 
 		found := false
 		for _, to := range possibleMoves {
@@ -223,7 +223,7 @@ func TestPerfectMovement(t *testing.T) {
 			t.FailNow()
 		}
 
-		g = g.applyMove(v.from, v.to, &config)
+		g = g.applyMove(v.from, v.to, config.roomSize)
 
 	}
 
