@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-type route = []string
+type route = []*bool
 
 func isUpper(str string) bool {
 	return strings.ToUpper(str) == str
 }
 
-func visited(needle string, haystack route) bool {
+func visited(needle *bool, haystack route) bool {
 	for _, v := range haystack {
 		if v == needle {
 			return true
@@ -22,11 +22,11 @@ func visited(needle string, haystack route) bool {
 	return false
 }
 
-func travel(g Graph, start string, behind route) []route {
+func travel(g Graph, start *bool, behind route) []route {
 	path := append(behind, start)
 
-	if start == "end" {
-		return [][]string{path}
+	if start == g.getStringAsBoolPointer("end") {
+		return [][]*bool{path}
 	}
 
 	routes := []route{}
@@ -34,7 +34,7 @@ func travel(g Graph, start string, behind route) []route {
 	neighbours := g.getNeighbours(start)
 
 	for _, n := range neighbours {
-		if isUpper(n) {
+		if *n {
 			routes = append(routes, travel(g, n, path)...)
 		} else {
 			if !visited(n, path) {
@@ -47,7 +47,7 @@ func travel(g Graph, start string, behind route) []route {
 	return routes
 }
 
-func visitCount(cave string, behind route) int {
+func visitCount(cave *bool, behind route) int {
 	sum := 0
 	for _, v := range behind {
 		if v == cave {
@@ -58,12 +58,12 @@ func visitCount(cave string, behind route) int {
 	return sum
 }
 
-func canComplexTravel(to string, behind route) bool {
-	if to == "start" {
+func canComplexTravel(to *bool, behind route, startPtr *bool) bool {
+	if to == startPtr {
 		return false
 	}
 
-	if isUpper(to) {
+	if *to {
 		// log.Printf("Route %v can travel to %v\n", behind, to)
 		return true
 	} else {
@@ -74,28 +74,28 @@ func canComplexTravel(to string, behind route) bool {
 }
 
 // #PERFORMANCE Turn route into a struct and set value once
-func visitedAnySmallCaveTwice(route []string) bool {
-	seen := make(map[string]bool)
+func visitedAnySmallCaveTwice(route []*bool) bool {
+	seen := make(map[*bool]bool)
 
 	for _, v := range route {
-		if isUpper(v) {
-			continue
+		if *v {
+			continue // Ignore large caves
 		}
 		if seen[v] {
-			return true
+			return true // We've seen this cave small before
 		}
-		seen[v] = true
+		seen[v] = true // Note that we've seen this small cave
 
 	}
 
 	return false
 }
 
-func travelComplex(g Graph, start string, behind route) []route {
+func travelComplex(g Graph, start *bool, behind route) []route {
 	path := append(behind, start)
 
-	if start == "end" {
-		return [][]string{path}
+	if start == g.getStringAsBoolPointer("end") {
+		return [][]*bool{path}
 	}
 
 	routes := []route{}
@@ -103,7 +103,7 @@ func travelComplex(g Graph, start string, behind route) []route {
 	neighbours := g.getNeighbours(start)
 
 	for _, n := range neighbours {
-		if canComplexTravel(n, path) {
+		if canComplexTravel(n, path, g.getStringAsBoolPointer("start")) {
 			routes = append(routes, travelComplex(g, n, path)...)
 		}
 	}
@@ -116,19 +116,21 @@ func parseGraph(lines []string) graphdata {
 
 	for _, line := range lines {
 		a, b := file.SplitOnce(line, "-")
-		g.addEdge(a, b)
+		g.addEdge(g.getStringAsBoolPointer(a), g.getStringAsBoolPointer(b))
 	}
 
 	return g
 }
 
 func countRoutes(g Graph) int {
-	routes := travel(g, "start", []string{})
+	start := g.getStringAsBoolPointer("start")
+	routes := travel(g, start, []*bool{})
 	return len(routes)
 }
 
 func countComplexRoutes(g Graph) int {
-	routes := travelComplex(g, "start", []string{})
+	start := g.getStringAsBoolPointer("start")
+	routes := travelComplex(g, start, []*bool{})
 	return len(routes)
 }
 
