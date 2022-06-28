@@ -1,7 +1,7 @@
 package day25
 
 import (
-	"fmt"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -172,7 +172,7 @@ func TestGridParse(t *testing.T) {
 		"....v..v.>",
 	})
 
-	fmt.Print(grid)
+	log.Print(grid)
 
 	t.Fail()
 

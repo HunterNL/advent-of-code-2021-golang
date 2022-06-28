@@ -1,7 +1,7 @@
 package day20
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -90,7 +90,7 @@ func (b bounds) allPixels() []vec2 {
 	for y := b.yMin; y <= b.yMax; y++ {
 		for x := b.xMin; x <= b.xMax; x++ {
 			vectors = append(vectors, vec2{x, y})
-			// fmt.Printf("Appending vector %v\n", vec2{x, y})
+			// log.Printf("Appending vector %v\n", vec2{x, y})
 		}
 	}
 
@@ -195,7 +195,7 @@ func enhanceImage(in image, algorithm string, oobState bool) (image, bool) {
 		}
 	}
 
-	fmt.Printf("Image enhanced, now sized %v\n", len(out))
+	log.Printf("Image enhanced, now sized %v\n", len(out))
 
 	return out, oobCycle(oobState, algorithm)
 }
@@ -208,7 +208,7 @@ func Solve() (int, int) {
 		panic(err)
 	}
 
-	fmt.Println("Alg size:", len(alg))
+	log.Println("Alg size:", len(alg))
 
 	oobState := false
 
@@ -222,9 +222,9 @@ func Solve() (int, int) {
 		img, oobState = enhanceImage(img, alg, oobState)
 	}
 
-	fmt.Printf("Image size: %v\n", len(img))
+	log.Printf("Image size: %v\n", len(img))
 
 	return len1, len(img)
 
-	// fmt.Printf("Image:\n\n%v\n%v\n\n", img.String(), alg)
+	// log.Printf("Image:\n\n%v\n%v\n\n", img.String(), alg)
 }

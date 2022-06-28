@@ -2,6 +2,7 @@ package day22
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"sort"
 )
@@ -265,7 +266,7 @@ func carveCuboid(primary, cut cuboid) []cuboid {
 		panic("Volume grew?!")
 	}
 
-	// fmt.Printf("Input|Cut|Final %v|%v|%v\n", primary.volume(), cut.volume(), sum)
+	// log.Printf("Input|Cut|Final %v|%v|%v\n", primary.volume(), cut.volume(), sum)
 
 	return out
 }
@@ -304,7 +305,7 @@ func removeOverlap(reactor cuboidReactor, newArea cuboid) cuboidReactor {
 	for i := 0; i < len(reactor); i++ {
 		reactorCube := reactor[i]
 		if reactorCube.overlaps(newArea) {
-			// fmt.Printf("Existing cube %v [%v] overlaps with %v, splitting\n", reactorCube, i, newArea)
+			// log.Printf("Existing cube %v [%v] overlaps with %v, splitting\n", reactorCube, i, newArea)
 
 			// Remove cube from reactor
 			reactor[i] = reactor[len(reactor)-1]
@@ -315,10 +316,10 @@ func removeOverlap(reactor cuboidReactor, newArea cuboid) cuboidReactor {
 
 				// Add every cubelet not overlapping the area to clear
 				if !cubelet.overlaps(newArea) {
-					// fmt.Printf("Adding %v to reactor\n", cubelet)
+					// log.Printf("Adding %v to reactor\n", cubelet)
 					reactor = append(reactor, cubelet)
 				} else {
-					// fmt.Printf("Discarding %v\n", cubelet)
+					// log.Printf("Discarding %v\n", cubelet)
 				}
 			}
 
@@ -349,12 +350,12 @@ func Solve() (int, int) {
 	r := cuboidReactor{}
 	for i, step := range instructions {
 		r.applyStep(step)
-		fmt.Printf("Step %v, reactor size: %v\n", i, len(r))
+		log.Printf("Step %v, reactor size: %v\n", i, len(r))
 	}
 
 	sum := r.countOn()
 
-	fmt.Println("Count on:", sum)
+	log.Println("Count on:", sum)
 
 	return p1, sum
 }

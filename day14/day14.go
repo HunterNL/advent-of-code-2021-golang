@@ -2,7 +2,7 @@ package day14
 
 import (
 	"aoc2021/file"
-	"fmt"
+	"log"
 	"math"
 	"strings"
 )
@@ -164,14 +164,14 @@ func Solve() (int, int) {
 
 	// pairs := countPairs(seed)
 
-	// fmt.Printf("%v\n", pairs)
-	// fmt.Printf("%v\n", len(pairs))
+	// log.Printf("%v\n", pairs)
+	// log.Printf("%v\n", len(pairs))
 
 	// counts := countElements(seed)
 	// mostCommon := mostCommon(&counts)
 	// leastCommon := leastCommon(&counts)
 
-	// fmt.Printf("Most common: %v least common: %v solution: %v\n", mostCommon, leastCommon, mostCommon-leastCommon)
+	// log.Printf("Most common: %v least common: %v solution: %v\n", mostCommon, leastCommon, mostCommon-leastCommon)
 
 	// Part 2
 	c := getCounts(seed)
@@ -184,7 +184,7 @@ func Solve() (int, int) {
 
 	part1 := mostCommon2(&c) - leastCommon2(&c)
 
-	// fmt.Printf("Elements: %v\n", c.elements)
+	// log.Printf("Elements: %v\n", c.elements)
 
 	for i := 0; i < 30; i++ {
 		c = smartStep(&c, &rules, &pairMap)
@@ -194,7 +194,7 @@ func Solve() (int, int) {
 	mostCommon2 := mostCommon2(&c)
 	leastCommon2 := leastCommon2(&c)
 
-	fmt.Printf("Most common: %v least common: %v solution: %v\n", mostCommon2, leastCommon2, mostCommon2-leastCommon2)
+	log.Printf("Most common: %v least common: %v solution: %v\n", mostCommon2, leastCommon2, mostCommon2-leastCommon2)
 
 	return part1, mostCommon2 - leastCommon2
 }

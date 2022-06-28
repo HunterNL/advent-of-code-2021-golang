@@ -84,7 +84,7 @@ func lowestPoints(cavemap heightMap, xbound, ybound int) heightMap {
 		//TOP
 		if y > 0 {
 			if cavemap[xy{x, y - 1}] <= height {
-				// fmt.Println("Top isn't lower")
+				// log.Println("Top isn't lower")
 				continue
 			}
 		}
@@ -92,7 +92,7 @@ func lowestPoints(cavemap heightMap, xbound, ybound int) heightMap {
 		//BOTTOM
 		if y < ybound {
 			if cavemap[xy{x, y + 1}] <= height {
-				// fmt.Println("bottom isn't lower")
+				// log.Println("bottom isn't lower")
 				continue
 			}
 		}
@@ -100,7 +100,7 @@ func lowestPoints(cavemap heightMap, xbound, ybound int) heightMap {
 		//LEFT
 		if x > 0 {
 			if cavemap[xy{x - 1, y}] <= height {
-				// fmt.Println("left isn't lower")
+				// log.Println("left isn't lower")
 				continue
 			}
 		}
@@ -108,7 +108,7 @@ func lowestPoints(cavemap heightMap, xbound, ybound int) heightMap {
 		//RIGHT
 		if x < xbound {
 			if cavemap[xy{x + 1, y}] <= height {
-				// fmt.Println("right isn't lower")
+				// log.Println("right isn't lower")
 				continue
 			}
 		}
@@ -130,9 +130,9 @@ func Solve() (int, int) {
 
 	part1 := riskScore(points)
 
-	// fmt.Printf("Risk score: %v", part1)
+	// log.Printf("Risk score: %v", part1)
 
-	// fmt.Printf("Top basins: %v", part2)
+	// log.Printf("Top basins: %v", part2)
 	return part1, part2
 }
 

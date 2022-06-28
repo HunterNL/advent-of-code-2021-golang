@@ -77,8 +77,8 @@ func Solve() (int, int) {
 	part1 := CalcFuel(nums)
 	part2 := CalcFuelExpensive(nums)
 
-	// fmt.Printf("Part 1: Crab movement: %v\n", part1)
-	// fmt.Printf("Part 2: Crab movement: %v\n", part2)
+	// log.Printf("Part 1: Crab movement: %v\n", part1)
+	// log.Printf("Part 2: Crab movement: %v\n", part2)
 
 	return part1, part2
 }

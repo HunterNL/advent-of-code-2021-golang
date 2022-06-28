@@ -1,7 +1,7 @@
 package day22
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -38,7 +38,7 @@ func Test1dCompare(t *testing.T) {
 	cr := cuboid1dReactor{}
 
 	for i, s := range instructions {
-		fmt.Printf("Step %v\n", i)
+		log.Printf("Step %v\n", i)
 		vr.applyStep(s)
 		cr.applyStep(s)
 
@@ -95,7 +95,7 @@ func TestCount(t *testing.T) {
 	s = vector3DReactor{}
 
 	for i, step := range instructions {
-		fmt.Printf("\n\nApplying step %v %v\n\n", i, step)
+		log.Printf("\n\nApplying step %v %v\n\n", i, step)
 		s.applyStep(step)
 		r.applyStep(step)
 
@@ -104,7 +104,7 @@ func TestCount(t *testing.T) {
 			t.FailNow()
 		}
 
-		fmt.Printf("Reactor size:%v\n", len(r))
+		log.Printf("Reactor size:%v\n", len(r))
 	}
 
 	sum := r.countOn()

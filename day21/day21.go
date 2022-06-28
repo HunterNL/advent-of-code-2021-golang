@@ -1,6 +1,6 @@
 package day21
 
-import "fmt"
+import "log"
 
 type game struct {
 	player1Position int
@@ -98,7 +98,7 @@ func playGame(g *game) int {
 		rolls += 3
 		if g.player1Score >= 1000 {
 			g.losingScore = &g.player2Score
-			fmt.Println("Player 1 win")
+			log.Println("Player 1 win")
 			return rolls
 		}
 
@@ -106,7 +106,7 @@ func playGame(g *game) int {
 		rolls += 3
 		if g.player2Score >= 1000 {
 			g.losingScore = &g.player1Score
-			fmt.Println("Player 2 win")
+			log.Println("Player 2 win")
 			return rolls
 		}
 	}
@@ -153,7 +153,7 @@ func Solve() (int, int) {
 
 	score := rolls * *p1Game.losingScore
 
-	fmt.Printf("Score: %v\n", score)
+	log.Printf("Score: %v\n", score)
 
 	o := omniverse{
 		universe{
@@ -167,12 +167,12 @@ func Solve() (int, int) {
 
 	p1Wins, p2Wins := countWinners(o)
 
-	fmt.Printf("P1 wins %v times\nP2 wins %v times\n", p1Wins, p2Wins)
+	log.Printf("P1 wins %v times\nP2 wins %v times\n", p1Wins, p2Wins)
 
 	if p1Wins > p2Wins {
-		fmt.Printf("P1 wins\n")
+		log.Printf("P1 wins\n")
 	} else {
-		fmt.Printf("P2 wins\n")
+		log.Printf("P2 wins\n")
 	}
 
 	return score, intMax(p1Wins, p2Wins)

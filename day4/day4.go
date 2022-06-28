@@ -162,8 +162,8 @@ func Solve() (int, int) {
 	sumLowest := sumIntSlice(unrolledLowest)
 	sumHighest := sumIntSlice(unrolledHighest)
 
-	// fmt.Printf("Winner Sum: %v Hit Number: %v Product: %v\n", sumLowest, lowestBoard.hitNumber, sumLowest*lowestBoard.hitNumber)
-	// fmt.Printf("Looser Sum: %v Hit Number: %v Product: %v\n", sumHighest, highestBoard.hitNumber, sumHighest*highestBoard.hitNumber)
+	// log.Printf("Winner Sum: %v Hit Number: %v Product: %v\n", sumLowest, lowestBoard.hitNumber, sumLowest*lowestBoard.hitNumber)
+	// log.Printf("Looser Sum: %v Hit Number: %v Product: %v\n", sumHighest, highestBoard.hitNumber, sumHighest*highestBoard.hitNumber)
 
 	part1 := sumLowest * lowestBoard.hitNumber
 	part2 := sumHighest * highestBoard.hitNumber

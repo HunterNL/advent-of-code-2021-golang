@@ -22,7 +22,7 @@ func YInZone(t target, y int) bool {
 func isXHit(launchX int, t target) (bool, int) {
 	b := ball{dx: launchX}
 	for b.x <= t.right {
-		// fmt.Printf("Ball status in X Sim: %+v\n", b)
+		// log.Printf("Ball status in X Sim: %+v\n", b)
 		if xInZone(t, b.x) {
 			return true, b.iter
 		}
@@ -39,7 +39,7 @@ func isYHit(launchY int, t target, iterations int) bool {
 	b := ball{dy: launchY}
 	for i := 0; i < iterations; i++ {
 		b = step(b)
-		// fmt.Printf("Ball status in Y Sim: %+v\n", b)
+		// log.Printf("Ball status in Y Sim: %+v\n", b)
 	}
 
 	return YInZone(t, b.y)
@@ -70,7 +70,7 @@ func iterTillXHit(t target, launchX, launchY, iterLimit int) bool {
 			return true
 		}
 
-		// fmt.Printf("X Hit[%v,%v]\n", b.x, b.y)
+		// log.Printf("X Hit[%v,%v]\n", b.x, b.y)
 	}
 
 	return false
@@ -85,7 +85,7 @@ func iterTillYHit(t target, launchY, iterLimit int) bool {
 			return true
 		}
 
-		// fmt.Printf("Y Hit [%v,%v]\n", b.x, b.y)
+		// log.Printf("Y Hit [%v,%v]\n", b.x, b.y)
 	}
 
 	return false
@@ -106,7 +106,7 @@ func iterTillHit(t target, launchX, launchY, iterLimit int) bool {
 			return false
 		}
 
-		// fmt.Printf("Y Hit [%v,%v]\n", b.x, b.y)
+		// log.Printf("Y Hit [%v,%v]\n", b.x, b.y)
 	}
 
 	return false

@@ -1,7 +1,7 @@
 package day21
 
 import (
-	"fmt"
+	"log"
 	"testing"
 )
 
@@ -86,7 +86,7 @@ func TestOmniverseCount(t *testing.T) {
 
 	p1Expected, p2Expected := 444356092776315, 341960390180808
 
-	fmt.Printf("%v %T \n", p1Expected, p1Expected)
+	log.Printf("%v %T \n", p1Expected, p1Expected)
 
 	if p1Wins != p1Expected {
 		t.Errorf("Expected player 1 to win %.2e times, not %.2e\n", float64(p1Expected), float64(p1Wins))

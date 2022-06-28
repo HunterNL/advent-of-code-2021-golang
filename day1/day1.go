@@ -51,7 +51,7 @@ func Solve() (int, int) {
 		lastSum = n
 	}
 
-	// fmt.Printf("%d out of %d", reduceCount, len(numlist))
+	// log.Printf("%d out of %d", reduceCount, len(numlist))
 
 	return reduceCount, reduceCount2
 

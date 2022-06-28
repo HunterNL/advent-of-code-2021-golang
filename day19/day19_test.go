@@ -1,7 +1,7 @@
 package day19
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"testing"
 )
@@ -114,7 +114,7 @@ func TestCount(t *testing.T) {
 	o.resolveScanners(unresolvedScanners[1:], commonDetectionThreshold)
 
 	for _, s := range unresolvedScanners {
-		fmt.Println(s.id, s.resolved, s.position)
+		log.Println(s.id, s.resolved, s.position)
 	}
 
 	count := len(o.beacons)

@@ -4,6 +4,7 @@ import (
 	"aoc2021/file"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -347,11 +348,11 @@ func BruteForceDown() int {
 
 		}
 
-		fmt.Printf("Found %v valid exit states for section %v while Zlimit is %v\n", len(acceptedZExitState[sectionId-1]), sectionId-1, zUpperLimit)
+		log.Printf("Found %v valid exit states for section %v while Zlimit is %v\n", len(acceptedZExitState[sectionId-1]), sectionId-1, zUpperLimit)
 
 	}
 
-	print(len(acceptedZExitState[highestBacktraceSection-1]))
+	log.Print(len(acceptedZExitState[highestBacktraceSection-1]))
 
 	// return
 
@@ -360,15 +361,15 @@ func BruteForceDown() int {
 
 	leftNum := [8]int{9, 9, 9, 9, 9, 9, 9, 9}
 
-	fmt.Println("Left slice:", leftNum[:7])
+	log.Println("Left slice:", leftNum[:7])
 
 	for leftNum != [8]int{1, 1, 1, 1, 1, 1, 1, 1} {
 		// if num[13] == 9 && num[12] == 9 && num[11] == 9 && num[10] == 9 && num[9] == 9 && num[8] == 9 && num[7] == 9 {
-		// 	fmt.Printf("N: %v\n", num)
+		// 	log.Printf("N: %v\n", num)
 		// }
 
 		if leftNum[7] == 9 && leftNum[6] == 9 && leftNum[5] == 9 && leftNum[4] == 9 && leftNum[3] == 9 && leftNum[2] == 9 {
-			fmt.Printf("Current leftNum: %v\n", leftNum)
+			log.Printf("Current leftNum: %v\n", leftNum)
 		}
 
 		leftALU.reset()
@@ -377,7 +378,7 @@ func BruteForceDown() int {
 		_, isValidZ := acceptedZExitState[7][leftALU[2]]
 
 		if isValidZ {
-			fmt.Println("Found valid starting digits!", leftNum, leftALU[2])
+			log.Println("Found valid starting digits!", leftNum, leftALU[2])
 			rightNum := [6]int{9, 9, 9, 9, 9, 9}
 
 			for rightNum != [6]int{1, 1, 1, 1, 1, 1} {
@@ -390,7 +391,7 @@ func BruteForceDown() int {
 					// _, stillValidZ := acceptedZState[sectionId][a1[2]]
 
 					if sectionId == 13 && rightALU[2] == 0 {
-						fmt.Printf("Found result: %v %v", leftNum, rightNum)
+						log.Printf("Found result: %v %v", leftNum, rightNum)
 						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
 					}
 
@@ -400,7 +401,7 @@ func BruteForceDown() int {
 				}
 				decrementNum(rightNum[:], 5)
 			}
-			fmt.Println("Somehow failed!")
+			log.Println("Somehow failed!")
 		}
 
 		decrementNum(leftNum[:], 7)
@@ -447,11 +448,11 @@ func BruteForceUp() int {
 
 		}
 
-		fmt.Printf("Found %v valid exit states for section %v while Zlimit is %v\n", len(acceptedZExitState[sectionId-1]), sectionId-1, zUpperLimit)
+		log.Printf("Found %v valid exit states for section %v while Zlimit is %v\n", len(acceptedZExitState[sectionId-1]), sectionId-1, zUpperLimit)
 
 	}
 
-	print(len(acceptedZExitState[highestBacktraceSection-1]))
+	log.Print(len(acceptedZExitState[highestBacktraceSection-1]))
 
 	// return
 
@@ -460,15 +461,15 @@ func BruteForceUp() int {
 
 	leftNum := [8]int{1, 1, 1, 1, 1, 1, 1, 1}
 
-	fmt.Println("Left slice:", leftNum[:7])
+	log.Println("Left slice:", leftNum[:7])
 
 	for leftNum != [8]int{9, 9, 9, 9, 9, 9, 9, 9} {
 		// if num[13] == 9 && num[12] == 9 && num[11] == 9 && num[10] == 9 && num[9] == 9 && num[8] == 9 && num[7] == 9 {
-		// 	fmt.Printf("N: %v\n", num)
+		// 	log.Printf("N: %v\n", num)
 		// }
 
 		if leftNum[7] == 9 && leftNum[6] == 9 && leftNum[5] == 9 && leftNum[4] == 9 && leftNum[3] == 9 && leftNum[2] == 9 {
-			fmt.Printf("Current leftNum: %v\n", leftNum)
+			log.Printf("Current leftNum: %v\n", leftNum)
 		}
 
 		leftALU.reset()
@@ -477,7 +478,7 @@ func BruteForceUp() int {
 		_, isValidZ := acceptedZExitState[7][leftALU[2]]
 
 		if isValidZ {
-			fmt.Println("Found valid starting digits!", leftNum, leftALU[2])
+			log.Println("Found valid starting digits!", leftNum, leftALU[2])
 			rightNum := [6]int{1, 1, 1, 1, 1, 1}
 
 			for rightNum != [6]int{9, 9, 9, 9, 9, 9} {
@@ -491,7 +492,7 @@ func BruteForceUp() int {
 
 					if sectionId == 13 && rightALU[2] == 0 {
 
-						fmt.Printf("Found result: %v %v", leftNum, rightNum)
+						log.Printf("Found result: %v %v", leftNum, rightNum)
 						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
 					}
 
@@ -501,7 +502,7 @@ func BruteForceUp() int {
 				}
 				incrementNum(rightNum[:], 5)
 			}
-			fmt.Println("Somehow failed!")
+			log.Println("Somehow failed!")
 		}
 
 		incrementNum(leftNum[:], 7)
@@ -519,16 +520,16 @@ func BruteForce() {
 
 	for {
 		if num[13] == 9 && num[12] == 9 && num[11] == 9 && num[10] == 9 && num[9] == 9 {
-			fmt.Printf("N: %v\n", num)
+			log.Printf("N: %v\n", num)
 		}
 
 		a1.executeInstructions(program, num[:])
 		// if a1[2] == 0 {
-		// 	fmt.Printf("Found %v\n", num)
+		// 	log.Printf("Found %v\n", num)
 		// 	break
 		// }
 
-		fmt.Println(a1)
+		log.Println(a1)
 		break
 		a1.reset()
 
@@ -600,12 +601,12 @@ func Solve() (int, int) {
 
 		workingCombo[sectionId] = make([]aluState, 0, 10)
 
-		fmt.Printf("Starting section %v\n", sectionId)
+		log.Printf("Starting section %v\n", sectionId)
 
 		for inputDigit := 1; inputDigit <= 9; inputDigit++ {
-			// fmt.Printf("Starting input %v\n", inputDigit)
+			// log.Printf("Starting input %v\n", inputDigit)
 			for zState := 0; zState <= 26; zState++ {
-				// fmt.Printf("Starting state %v\n", zState)
+				// log.Printf("Starting state %v\n", zState)
 				a1 := alu{0, 0, zState, 0}
 				a1.executeInstructions(sections[sectionId], []int{inputDigit})
 
@@ -614,39 +615,39 @@ func Solve() (int, int) {
 				for _, aState := range acceptedZState {
 					if aluZState == aState {
 						// inputForZState[sectionId][zState] = inputDigit
-						// fmt.Println("Wait wat 2")
+						// log.Println("Wait wat 2")
 						workingInputs[sectionId] = append(workingInputs[sectionId], inputDigit)
 						workingStates[sectionId] = append(workingStates[sectionId], zState)
 
 						workingCombo[sectionId] = append(workingCombo[sectionId], aluState{inputDigit, aState})
 
 						stateMap[sectionId][zState] = true
-						// fmt.Println("Wait a sec now")
+						// log.Println("Wait a sec now")
 					}
 				}
-				// fmt.Printf("Alu state for (I:%v, Z:%v): %v\n", inputDigit, zState, a1)
+				// log.Printf("Alu state for (I:%v, Z:%v): %v\n", inputDigit, zState, a1)
 			}
 		}
 
 		acceptedZState = workingStates[sectionId]
-		// fmt.Printf()
+		// log.Printf()
 
 		if len(stateMap[sectionId]) == 26 {
-			fmt.Println("Found section that allows all digits")
+			log.Println("Found section that allows all digits")
 			break
 		}
 
-		fmt.Printf("New target Z states (%v): %v\n", len(acceptedZState), acceptedZState)
+		log.Printf("New target Z states (%v): %v\n", len(acceptedZState), acceptedZState)
 	}
 
 	// a2 := alu{}
 
 	// a2.executeInstructions(defaultProgram, []int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9})
 
-	// fmt.Println(a2)
+	// log.Println(a2)
 
-	// fmt.Print(workingInputs)
-	// fmt.Print(workingStates)
+	// log.Print(workingInputs)
+	// log.Print(workingStates)
 
 	return -1, -1
 

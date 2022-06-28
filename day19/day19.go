@@ -2,7 +2,7 @@ package day19
 
 import (
 	"aoc2021/intmath"
-	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -215,7 +215,7 @@ func (o *ocean) resolveScanner(s scanner, offset vec3, rot rotation) {
 		o.beacons[detection.localPos.applyRotation(rot).add(offset)] = true
 	}
 
-	fmt.Printf("Found scanner %v at offset: %v rotation: %v \n", s.id, offset, rot)
+	log.Printf("Found scanner %v at offset: %v rotation: %v \n", s.id, offset, rot)
 
 	s.resolved = true
 	s.position = offset
@@ -273,7 +273,7 @@ func Solve() (int, int) {
 	count := len(o.beacons)
 	dist := findLargestDistance(o.scanners)
 
-	fmt.Printf("Count: %v Max Distance: %v\n", count, dist)
+	log.Printf("Count: %v Max Distance: %v\n", count, dist)
 
 	return count, dist
 

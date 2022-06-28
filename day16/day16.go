@@ -4,7 +4,7 @@ import (
 	"aoc2021/file"
 	"bytes"
 	"encoding/hex"
-	"fmt"
+	"log"
 	"math"
 )
 
@@ -49,7 +49,7 @@ func parsePacket(scanner BitScannerInterface) (b *bitsPackage, e error) {
 
 	if id == PackageLiteral {
 		literal = parseLiteral(scanner)
-		// fmt.Printf("Literal: %v\n", literal)
+		// log.Printf("Literal: %v\n", literal)
 	} else {
 		//Operator
 		lengthType := bs.readBits(1)
@@ -58,7 +58,7 @@ func parsePacket(scanner BitScannerInterface) (b *bitsPackage, e error) {
 			bitLen := uint16(bs.readBits(7)) << 8
 			bitLen = bitLen | uint16(bs.readBits(8))
 
-			fmt.Printf("BitLen: %v\n", bitLen)
+			log.Printf("BitLen: %v\n", bitLen)
 
 			curScan := bs.totalBitCount()
 
@@ -73,7 +73,7 @@ func parsePacket(scanner BitScannerInterface) (b *bitsPackage, e error) {
 			childCount := uint16(bs.readBits(3)) << 8
 			childCount = childCount | uint16(bs.readBits(8))
 
-			fmt.Printf("ChildCount: %v\n", childCount)
+			log.Printf("ChildCount: %v\n", childCount)
 
 			for i := 0; i < int(childCount); i++ {
 				child, err := parsePacket(scanner)
@@ -185,7 +185,7 @@ func Solve() (int, int) {
 
 	res := resolvePacket(packet)
 
-	fmt.Printf("P: %v\n versionSum: %v\n Evaluated: %v\n", packet, sum, res)
+	log.Printf("P: %v\n versionSum: %v\n Evaluated: %v\n", packet, sum, res)
 
 	return sum, res
 

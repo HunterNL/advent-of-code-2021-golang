@@ -2,7 +2,7 @@ package day25
 
 import (
 	"aoc2021/file"
-	"fmt"
+	"log"
 	"strings"
 )
 
@@ -38,7 +38,7 @@ func parseGrid(strs []string) (grid, int, int) {
 	for i, l := range strs {
 		grid[i] = parseLine(l)
 
-		// fmt.Printf("\n%v\n", grid)
+		// log.Printf("\n%v\n", grid)
 	}
 	return grid, x, y
 
@@ -96,7 +96,7 @@ func (g *grid) step(x, y int) (grid, bool) {
 
 	out.replace(x, y, '}', '>')
 
-	// fmt.Println(intermediate)
+	// log.Println(intermediate)
 
 	for iY := 0; iY < y; iY++ {
 		for iX := 0; iX < x; iX++ {
@@ -121,7 +121,7 @@ func (g *grid) step(x, y int) (grid, bool) {
 	// 	}
 	// }
 
-	// fmt.Println(out)
+	// log.Println(out)
 
 	return out, moved
 }
@@ -137,7 +137,7 @@ func Solve() (int, int) {
 		grid, moved = grid.step(x, y)
 	}
 
-	fmt.Printf("Steps: %v\n", steps)
+	log.Printf("Steps: %v\n", steps)
 
 	return steps, -1
 }

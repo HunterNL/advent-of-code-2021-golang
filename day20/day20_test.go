@@ -1,7 +1,7 @@
 package day20
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"testing"
 )
@@ -12,7 +12,7 @@ func TestParse(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		fmt.Printf(string(file))
+		log.Printf(string(file))
 		panic(err)
 	}
 
@@ -85,7 +85,7 @@ func TestImageBounds(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		fmt.Printf(string(file))
+		log.Printf(string(file))
 		panic(err)
 	}
 
@@ -106,7 +106,7 @@ func TestEnhance(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		fmt.Printf(string(file))
+		log.Printf(string(file))
 		panic(err)
 	}
 
@@ -121,7 +121,7 @@ func TestEnhance(t *testing.T) {
 
 	alg, img := parseInput(file)
 
-	fmt.Printf("\n%v\n", img.String())
+	log.Printf("\n%v\n", img.String())
 
 	var bools [9]bool
 	for i, vec := range pixelNeighbours(vec2{2, 2}) {
@@ -142,7 +142,7 @@ func TestEnhanceCount(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		fmt.Printf(string(file))
+		log.Printf(string(file))
 		panic(err)
 	}
 
@@ -152,7 +152,7 @@ func TestEnhanceCount(t *testing.T) {
 		img, _ = enhanceImage(img, alg, false)
 	}
 
-	fmt.Printf(img.String())
+	log.Printf(img.String())
 
 	// t.Fail()
 
@@ -165,7 +165,7 @@ func TestBulkEnhanceCount(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		fmt.Printf(string(file))
+		log.Printf(string(file))
 		panic(err)
 	}
 
@@ -177,7 +177,7 @@ func TestBulkEnhanceCount(t *testing.T) {
 		img, _ = enhanceImage(img, alg, false)
 	}
 
-	fmt.Printf(img.String())
+	log.Printf(img.String())
 
 	// t.Fail()
 

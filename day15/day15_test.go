@@ -3,7 +3,7 @@ package day15
 import (
 	"aoc2021/file"
 	"aoc2021/grid"
-	"fmt"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -17,7 +17,7 @@ func TestFindPath(t *testing.T) {
 
 	for _, i := range path {
 		x, y := grid.ToXY(i, rowSize)
-		fmt.Printf("X: %v, Y:%v\n", x, y)
+		log.Printf("X: %v, Y:%v\n", x, y)
 		risk += int(g[i])
 	}
 

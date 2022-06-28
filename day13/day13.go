@@ -2,7 +2,7 @@ package day13
 
 import (
 	"aoc2021/file"
-	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -119,7 +119,7 @@ func printGrid(grid *map[xy]bool) string {
 		x := i%xbound + 1
 		y := i / xbound
 
-		println(x, y)
+		log.Println(x, y)
 
 		if ((*grid)[xy{x: x, y: y}]) {
 			sb.WriteString("#")
@@ -132,7 +132,7 @@ func printGrid(grid *map[xy]bool) string {
 		}
 	}
 
-	fmt.Printf("Size: %v X: %v Y: %v", size, xbound, ybound)
+	log.Printf("Size: %v X: %v Y: %v", size, xbound, ybound)
 
 	return sb.String()
 }
@@ -156,11 +156,11 @@ func Solve() (int, int) {
 
 	count := countFolds(&grid)
 
-	fmt.Printf("Got %v dots left\n", count)
+	log.Printf("Got %v dots left\n", count)
 
 	gridstr := printGrid(&grid)
 
-	print(gridstr)
+	log.Print(gridstr)
 
 	return part1, -1
 

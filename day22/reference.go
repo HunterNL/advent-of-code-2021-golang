@@ -1,6 +1,6 @@
 package day22
 
-import "fmt"
+import "log"
 
 type vector3DReactor map[vec3]bool
 type vector1dReactor map[int]bool
@@ -25,7 +25,7 @@ func (b *cuboid1dReactor) applyStep(s step) {
 	*b = cuboid1dReactor(removeOverlap(cuboidReactor(*b), newStep.area))
 
 	if newStep.state {
-		fmt.Printf("Adding step %v to reactor\n", newStep.area)
+		log.Printf("Adding step %v to reactor\n", newStep.area)
 		*b = append(*b, newStep.area)
 	}
 

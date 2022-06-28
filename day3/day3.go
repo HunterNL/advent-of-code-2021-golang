@@ -29,7 +29,7 @@ func part2(lines []string, invert bool) string {
 		bitcount := countBits(lines)
 		halfPoint = 0.5 * float32(len(lines))
 
-		// fmt.Printf("HP: %T %v", halfPoint, halfPoint)
+		// log.Printf("HP: %T %v", halfPoint, halfPoint)
 
 		if float32(bitcount[bitIndex]) == halfPoint {
 			keepRune = '1'
@@ -84,7 +84,7 @@ func Solve() (int, int) {
 
 	part1 := gamma * epsilon
 
-	// fmt.Printf("Gamma: %v Epsilon: %v Multiplied: %v\n", gamma, epsilon, gamma*epsilon)
+	// log.Printf("Gamma: %v Epsilon: %v Multiplied: %v\n", gamma, epsilon, gamma*epsilon)
 
 	// Part 2
 	oxyRating, err := strconv.ParseInt(part2(lines, false), 2, 64)
@@ -102,6 +102,6 @@ func Solve() (int, int) {
 	return part1, int(part2)
 
 	// Oxygen generator rating
-	// fmt.Printf("Oxy rating: %v cooRating: %v multiplied: %v", oxyRating, cooRating, oxyRating*cooRating)
+	// log.Printf("Oxy rating: %v cooRating: %v multiplied: %v", oxyRating, cooRating, oxyRating*cooRating)
 
 }

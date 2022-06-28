@@ -2,7 +2,7 @@ package day24
 
 import (
 	"aoc2021/file"
-	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -89,12 +89,12 @@ func TestMonadInputs(t *testing.T) {
 		for zState := 0; zState <= 25; zState++ {
 			a1 := alu{0, 0, zState, 0}
 			a1.executeInstructions(programs[13], []int{inputDigit})
-			fmt.Printf("Alu state for (I:%v, Z:%v): %v\n", inputDigit, zState, a1)
+			log.Printf("Alu state for (I:%v, Z:%v): %v\n", inputDigit, zState, a1)
 		}
 
 	}
 
-	// fmt.Print(sections)
+	// log.Print(sections)
 
 	t.Fail()
 }
@@ -114,7 +114,7 @@ func TestSections(t *testing.T) {
 			for i3 := 1; i3 <= 9; i3++ {
 				for i4 := 1; i4 <= 9; i4++ {
 					a.executeInstructions(sections[0], []int{i, i2, i3, i4})
-					fmt.Printf("ALU state: %v,\n", a)
+					log.Printf("ALU state: %v,\n", a)
 					a.reset()
 				}
 
@@ -143,7 +143,7 @@ func TestFinalSection(t *testing.T) {
 			a1 := alu{}
 			a1[2] = zState + 26
 			a1.executeInstructions(program, []int{i})
-			fmt.Printf("ALU State for (I:%v Z:%v) %v\n", i, zState, a1)
+			log.Printf("ALU State for (I:%v Z:%v) %v\n", i, zState, a1)
 		}
 	}
 

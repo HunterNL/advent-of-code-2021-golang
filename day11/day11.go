@@ -2,7 +2,7 @@ package day11
 
 import (
 	"aoc2021/file"
-	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -104,13 +104,13 @@ func step(gridref *[100]uint8) int {
 }
 
 func countFlashes(grid *[100]uint8, iterations int) int {
-	// fmt.Println("Initial state")
-	// fmt.Println(toString(grid))
+	// log.Println("Initial state")
+	// log.Println(toString(grid))
 	sum := 0
 	for i := 0; i < iterations; i++ {
 		sum += step(grid)
-		// fmt.Printf("After step %v\n", i+1)
-		// fmt.Println(toString(grid))
+		// log.Printf("After step %v\n", i+1)
+		// log.Println(toString(grid))
 	}
 
 	return sum
@@ -149,7 +149,7 @@ func Solve() (int, int) {
 	grid = parseGrid(lines)
 	syncStep := findSyncStep(&grid)
 
-	fmt.Printf("Flash count: %v sync step: %v", flashes, syncStep)
+	log.Printf("Flash count: %v sync step: %v", flashes, syncStep)
 
 	return flashes, syncStep
 

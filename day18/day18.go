@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -293,7 +294,7 @@ func Solve() (int, int) {
 	total := sum(lines)
 	mag := magnitude(total)
 
-	fmt.Printf("Total magnitude: %v\n", mag)
+	log.Printf("Total magnitude: %v\n", mag)
 
 	//Part 2
 	max := 0
@@ -309,7 +310,7 @@ func Solve() (int, int) {
 		}
 	}
 
-	fmt.Printf("Max magnitude: %v\n", max)
+	log.Printf("Max magnitude: %v\n", max)
 
 	return mag, max
 }

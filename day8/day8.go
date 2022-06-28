@@ -152,7 +152,7 @@ func Solve() (int, int) {
 
 	sum := SumLines(lines)
 
-	// fmt.Printf("Unique Digits: %v Output sum: %v", digits, sum)
+	// log.Printf("Unique Digits: %v Output sum: %v", digits, sum)
 
 	return digits, sum
 }

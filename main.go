@@ -26,7 +26,7 @@ import (
 	"aoc2021/day7"
 	"aoc2021/day8"
 	"aoc2021/day9"
-	"fmt"
+	"log"
 )
 
 type dayFunc = func() (int, int)
@@ -69,13 +69,13 @@ func getDays() []dayFunc {
 func main() {
 	// solutionsFile, err := os.ReadFile("./solutions.json")
 	// if err != nil {
-	// 	fmt.Println(err)
+	// 	log.Println(err)
 	// 	return
 	// }
 	//
 	// solutions, err := aoc.ParseSolutions(solutionsFile)
 	// if err != nil {
-	// 	fmt.Println(err)
+	// 	log.Println(err)
 	// 	return
 	// }
 
@@ -90,7 +90,7 @@ func main() {
 	}
 
 	for i, day := range output {
-		fmt.Printf("Day %v:\n\tPart 1:\t%v\n\tPart 2:\t%v\n", i+1, day.part1, day.part2)
+		log.Printf("Day %v:\n\tPart 1:\t%v\n\tPart 2:\t%v\n", i+1, day.part1, day.part2)
 	}
 
 	// day25.Solve()

@@ -3,6 +3,8 @@ package main
 import (
 	"aoc2021/aoc"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 )
@@ -44,4 +46,17 @@ func TestSolutions(t *testing.T) {
 			}
 		})
 	}
+}
+
+func BenchmarkSolutions(b *testing.B) {
+	log.SetOutput(ioutil.Discard)
+	for dayIndex, day := range getDays() {
+		b.Run(fmt.Sprint("Day", dayIndex+1), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				day()
+			}
+		})
+
+	}
+
 }

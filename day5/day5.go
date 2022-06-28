@@ -119,7 +119,7 @@ func Solve() (int, int) {
 	// 	}
 	// }
 
-	// fmt.Printf("Intersections: %v", intersections)
+	// log.Printf("Intersections: %v", intersections)
 
 	return part1, part2
 }

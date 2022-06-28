@@ -1,7 +1,7 @@
 package day17
 
 import (
-	"fmt"
+	"log"
 )
 
 type target struct {
@@ -14,7 +14,7 @@ func iterTillDown(launchY int) int {
 	for dy >= 0 {
 		yPos += dy
 		dy = dy - 1
-		fmt.Println(yPos)
+		log.Println(yPos)
 	}
 
 	return yPos
@@ -28,7 +28,7 @@ func findValidX(t target) (int, iter int) {
 	for found := false; !found; {
 		launchX++
 		found, iterations = isXHit(launchX, t)
-		fmt.Println(found, launchX, iterations)
+		log.Println(found, launchX, iterations)
 	}
 
 	// for found {
@@ -96,7 +96,7 @@ func Solve() (int, int) {
 
 	hitCount := countHits(target)
 
-	fmt.Printf("Hit %v hitCount: %v\n", hit, hitCount)
+	log.Printf("Hit %v hitCount: %v\n", hit, hitCount)
 
 	return maxY, hitCount
 

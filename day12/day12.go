@@ -2,7 +2,7 @@ package day12
 
 import (
 	"aoc2021/file"
-	"fmt"
+	"log"
 	"strings"
 )
 
@@ -64,10 +64,10 @@ func canComplexTravel(to string, behind route) bool {
 	}
 
 	if isUpper(to) {
-		// fmt.Printf("Route %v can travel to %v\n", behind, to)
+		// log.Printf("Route %v can travel to %v\n", behind, to)
 		return true
 	} else {
-		// fmt.Printf("Visited %v before: %v Visited any small cave twice: %v\n", to, visited(to, behind), visitedAnySmallCaveTwice(behind))
+		// log.Printf("Visited %v before: %v Visited any small cave twice: %v\n", to, visited(to, behind), visitedAnySmallCaveTwice(behind))
 		return !visited(to, behind) || !visitedAnySmallCaveTwice(behind)
 	}
 
@@ -139,7 +139,7 @@ func Solve() (int, int) {
 	count := countRoutes(&g)
 	countComplex := countComplexRoutes(&g)
 
-	fmt.Printf("Simples routes: %v Complex routes: %v\n", count, countComplex)
+	log.Printf("Simples routes: %v Complex routes: %v\n", count, countComplex)
 
 	return count, countComplex
 }

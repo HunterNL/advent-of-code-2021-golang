@@ -2,7 +2,7 @@ package day10
 
 import (
 	"aoc2021/file"
-	"fmt"
+	"log"
 	"sort"
 )
 
@@ -45,7 +45,7 @@ func parseLine(str string) (err ParseError) {
 	defer func() {
 		if rerr := recover(); rerr != nil {
 			perr, ok := rerr.(ParseError)
-			// fmt.Printf("Recover error: %v\nAsserted Error:%v\nAssertionSucces:%v\nreturn error:%v", err, perr, ok, err)
+			// log.Printf("Recover error: %v\nAsserted Error:%v\nAssertionSucces:%v\nreturn error:%v", err, perr, ok, err)
 
 			if ok {
 				err = perr
@@ -72,7 +72,7 @@ func completeLine(str string) (fullstring []rune, completion []rune) {
 			break
 		}
 		if err.getStatus() != Incomplete {
-			fmt.Printf("Encounted non-incomplete error")
+			log.Printf("Encounted non-incomplete error")
 			panic(err)
 		}
 		rune := err.getExpectedRune()
@@ -108,7 +108,7 @@ func Solve() (int, int) {
 	}
 
 	// Part 1
-	// fmt.Printf("Syntax score: %v", sum)
+	// log.Printf("Syntax score: %v", sum)
 
 	scores := make([]int, 0, len(lines))
 	for _, line := range lines {
@@ -122,7 +122,7 @@ func Solve() (int, int) {
 	sort.Ints(scores)
 
 	middle := len(scores) / 2
-	// fmt.Printf("completion score: %v, ", scores[middle])
+	// log.Printf("completion score: %v, ", scores[middle])
 
 	return sum, scores[middle]
 

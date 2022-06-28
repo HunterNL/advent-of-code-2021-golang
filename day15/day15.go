@@ -4,7 +4,7 @@ import (
 	"aoc2021/file"
 	"aoc2021/grid"
 	"container/heap"
-	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -89,7 +89,7 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 		p := heap.Pop(&openSet)
 		current = p.(node)
 
-		// fmt.Printf("Removed %v from open set\n", current.index)
+		// log.Printf("Removed %v from open set\n", current.index)
 		// delete(openSet, lowestIndex)
 		closedSet[current.index] = current
 
@@ -118,7 +118,7 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 			}
 
 			if heapIndex > -1 {
-				// fmt.Printf("Fixing node %v\n", openSet[heapIndex].index)
+				// log.Printf("Fixing node %v\n", openSet[heapIndex].index)
 				if openSet[heapIndex].g > current.g+cost {
 					n2 := openSet[i]
 					n2.g = current.g + cost
@@ -127,15 +127,15 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 				}
 				heap.Fix(&openSet, heapIndex)
 			} else {
-				// fmt.Printf("Adding node %v\n", i)
+				// log.Printf("Adding node %v\n", i)
 				heap.Push(&openSet, node{g: current.g + cost, h: dist, index: i, parent: current.index})
 			}
 
-			// fmt.Printf("Distance to target from %v %v: %v\n", x, y, dist)
+			// log.Printf("Distance to target from %v %v: %v\n", x, y, dist)
 
 		}
 
-		// fmt.Printf("Open set size: %v closed set size: %v\n", len(openSet), len(closedSet))
+		// log.Printf("Open set size: %v closed set size: %v\n", len(openSet), len(closedSet))
 	}
 
 	// Convert closed set to ordered list
@@ -147,8 +147,8 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 		i = n.parent
 	}
 
-	// fmt.Printf("Path: %v\n", closedSet)
-	// fmt.Printf("Out: %v\n", out)
+	// log.Printf("Path: %v\n", closedSet)
+	// log.Printf("Out: %v\n", out)
 
 	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
 		out[i], out[j] = out[j], out[i]
@@ -186,7 +186,7 @@ func part1(file []string) int {
 
 	for _, i := range path {
 		x, y := grid.ToXY(i, rowSize)
-		fmt.Printf("X: %v, Y:%v\n", x, y)
+		log.Printf("X: %v, Y:%v\n", x, y)
 		risk += int(g[i])
 	}
 
@@ -204,11 +204,11 @@ func Solve() (int, int) {
 
 	for _, i := range path {
 		x, y := grid.ToXY(i, rowSize)
-		fmt.Printf("X: %v, Y:%v\n", x, y)
+		log.Printf("X: %v, Y:%v\n", x, y)
 		risk += int(g3[i])
 	}
 
-	fmt.Printf("Total risk: %v\n", risk)
+	log.Printf("Total risk: %v\n", risk)
 
 	return part1(file), risk
 }
