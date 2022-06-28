@@ -48,10 +48,11 @@ func TestRotationoffset(t *testing.T) {
 		panic(err)
 	}
 
-	scanners[0].resolved = true
+	o := ocean{map[vec3]bool{}, []scanner{}}
+	o.resolveScanner(scanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
 
 	for i := 1; i <= 4; i++ {
-		found, offset, _ := hasCommonPoints(scanners[0], scanners[i], 6)
+		found, offset, _ := hasCommonPoints(scanners[1], o, 6)
 		if !found {
 			t.Errorf("Expected scanner %v to be found", i)
 		}
@@ -73,11 +74,17 @@ func TestOffset(t *testing.T) {
 		panic(err)
 	}
 
-	found0, offset0, _ := hasCommonPoints(scanners[0], scanners[1], commonDetectionThreshold)
-	found1, offset1, _ := hasCommonPoints(scanners[1], scanners[1], commonDetectionThreshold)
-	found2, offset2, _ := hasCommonPoints(scanners[1], scanners[2], commonDetectionThreshold)
-	found3, offset3, _ := hasCommonPoints(scanners[1], scanners[3], commonDetectionThreshold)
-	found4, offset4, _ := hasCommonPoints(scanners[1], scanners[4], commonDetectionThreshold)
+	o0 := ocean{map[vec3]bool{}, []scanner{}}
+	o0.resolveScanner(scanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
+
+	o1 := ocean{map[vec3]bool{}, []scanner{}}
+	o1.resolveScanner(scanners[1], vec3{}, rotation{0, 1, 2, 1, 1, 1})
+
+	found0, offset0, _ := hasCommonPoints(scanners[1], o0, commonDetectionThreshold)
+	found1, offset1, _ := hasCommonPoints(scanners[1], o1, commonDetectionThreshold)
+	found2, offset2, _ := hasCommonPoints(scanners[2], o1, commonDetectionThreshold)
+	found3, offset3, _ := hasCommonPoints(scanners[3], o1, commonDetectionThreshold)
+	found4, offset4, _ := hasCommonPoints(scanners[4], o1, commonDetectionThreshold)
 
 	fmt.Println(found1, offset1, found2, offset2, found3, offset3, found4, offset4)
 
@@ -116,7 +123,10 @@ func TestOverLapCount(t *testing.T) {
 		panic(err)
 	}
 
-	count := countMatches(scanners[0], scanners[1], rotation{0, 1, 2, -1, 1, -1}, vec3{68, -1246, -43})
+	o := ocean{map[vec3]bool{}, []scanner{}}
+	o.resolveScanner(scanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
+
+	count := countMatches(&o, scanners[1], rotation{0, 1, 2, -1, 1, -1}, vec3{68, -1246, -43})
 
 	// t.Fail()
 
@@ -126,12 +136,12 @@ func TestOverLapCount(t *testing.T) {
 
 }
 
-var expectedPositions = []vec3{
-	{0, 0, 0},
-	{68, -1246, -43},
-	{1105, -1205, 1229},
-	{-92, -2380, -20},
-	{-20, -1133, 1061},
+var expectedPositions = map[int]vec3{
+	0: {0, 0, 0},
+	1: {68, -1246, -43},
+	2: {1105, -1205, 1229},
+	3: {-92, -2380, -20},
+	4: {-20, -1133, 1061},
 }
 
 func TestOverLap(t *testing.T) {
@@ -142,12 +152,12 @@ func TestOverLap(t *testing.T) {
 		panic(err)
 	}
 
-	found, offset, rot := hasCommonPoints(scanners[0], scanners[1], 12)
-	// scanners[1].rotation = rot
-	// scanners[1].position = offset
-	// scanners[1].resolved = true
+	o := ocean{map[vec3]bool{}, []scanner{}}
+	o.resolveScanner(scanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
 
-	resolveScanner(scanners[0], &scanners[1], rot, offset)
+	found, offset, rot := hasCommonPoints(scanners[1], o, 12)
+
+	resolveScanner(&scanners[1], rot, offset)
 
 	// t.Fail()
 
@@ -162,7 +172,7 @@ func TestOverLap(t *testing.T) {
 		t.Fatalf("Expected offset to be %v but got %v", expected, offset)
 	}
 
-	found, offset, rot = hasCommonPoints(scanners[1], scanners[3], 12)
+	found, offset, rot = hasCommonPoints(scanners[3], o, 12)
 
 	if !found {
 		t.Log("Expected scanner 3 to be found")
@@ -189,50 +199,58 @@ func TestAbsolutePositions(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+	o := ocean{map[vec3]bool{}, []scanner{}}
+	o.resolveScanner(scanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
 
-	scanners[0].resolved = true
+	o.resolveScanners(scanners[1:], 12)
 
-	resolveScanners(scanners, 12)
-
-	for i, ep := range expectedPositions {
-		pos := scanners[i].position //.applyRotation(scanners[i].rotation)
-
-		if !vec3equal(pos, ep) {
-			t.Errorf("Expected scanner %v at %v instead of %v", i, ep, pos)
+	for _, s := range o.scanners {
+		expectedPos := expectedPositions[s.id]
+		if !vec3equal(expectedPos, s.position) {
+			t.Errorf("Expected scanner %v at %v instead of %v", s.id, expectedPos, s.position)
 		}
 	}
+
+	if len(expectedPositions) != len(o.scanners) {
+		t.Errorf("Expected %v scanners but only found %v", len(expectedPositions), len(o.scanners))
+	}
 }
-func TestRelativePositions(t *testing.T) {
-	bytes, err := os.ReadFile("./test1_input.txt")
-	_, scanners := parseDetection(string(bytes))
 
-	if err != nil {
-		panic(err)
-	}
+// func TestRelativePositions(t *testing.T) {
+// 	t.SkipNow()
+// 	bytes, err := os.ReadFile("./test1_input.txt")
+// 	_, scanners := parseDetection(string(bytes))
 
-	scanners[0].rotation = rotation{0, 1, 2, 1, 1, 1}
-	scanners[0].resolved = true
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	resolveScanners(scanners, 12)
+// 	// scanners[0].rotation = rotation{0, 1, 2, 1, 1, 1}
+// 	// scanners[0].resolved = true
 
-	_, offset, rot := hasCommonPoints(scanners[0], scanners[1], 12)
+// 	o := ocean{}
+// 	o.resolveScanner(scanners[0], vec3{}, defaultRotation)
 
-	v1 := expectedPositions[1]
+// 	_, offset, rot := hasCommonPoints(scanners[1], o, 12)
 
-	if !vec3equal(offset, v1) {
-		t.Errorf("Expected offset %v to be %v instead of %v, rot %v", 0, v1, offset, rot)
-	}
+// 	v1 := expectedPositions[1]
 
-	_, offset, rot = hasCommonPoints(scanners[1], scanners[3], 12)
+// 	if !vec3equal(offset, v1) {
+// 		t.Errorf("Expected offset %v to be %v instead of %v, rot %v", 0, v1, offset, rot)
+// 	}
 
-	offset = offset.applyRotation(scanners[1].rotation)
+// 	o3 =
 
-	v2 := expectedPositions[3].sub(expectedPositions[1])
-	if !vec3equal(offset, v2) {
-		t.Errorf("Expected offset %v to be %v instead of %v, diff of %v, rot of %v", "1 to 3", v2, offset, v2.sub(offset), rot)
-	}
+// 	_, offset, rot = hasCommonPoints(scanners[1], scanners[3], 12)
 
-}
+// 	offset = offset.applyRotation(scanners[1].rotation)
+
+// 	v2 := expectedPositions[3].sub(expectedPositions[1])
+// 	if !vec3equal(offset, v2) {
+// 		t.Errorf("Expected offset %v to be %v instead of %v, diff of %v, rot of %v", "1 to 3", v2, offset, v2.sub(offset), rot)
+// 	}
+
+// }
 
 func TestCount(t *testing.T) {
 	bytes, err := os.ReadFile("./test1_input.txt")
@@ -242,16 +260,19 @@ func TestCount(t *testing.T) {
 		panic(err)
 	}
 
-	unresolvedScanners[0].rotation = rotation{0, 1, 2, 1, 1, 1}
-	unresolvedScanners[0].resolved = true
+	// unresolvedScanners[0].rotation = rotation{0, 1, 2, 1, 1, 1}
+	// unresolvedScanners[0].resolved = true
 
-	resolveScanners(unresolvedScanners, commonDetectionThreshold)
+	o := ocean{map[vec3]bool{}, []scanner{}}
+	o.resolveScanner(unresolvedScanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
+
+	o.resolveScanners(unresolvedScanners[1:], commonDetectionThreshold)
 
 	for _, s := range unresolvedScanners {
 		fmt.Println(s.id, s.resolved, s.position)
 	}
 
-	count := countUniqueDetections(unresolvedScanners)
+	count := len(o.beacons)
 	if count != 79 {
 		t.Errorf("Expected 79 beacons but got %v\n", count)
 	}
@@ -266,10 +287,14 @@ func TestManhatten(t *testing.T) {
 		panic(err)
 	}
 
+	o := ocean{}
+
+	o.resolveScanner(unresolvedScanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
+
 	unresolvedScanners[0].rotation = rotation{0, 1, 2, 1, 1, 1}
 	unresolvedScanners[0].resolved = true
 
-	resolveScanners(unresolvedScanners, commonDetectionThreshold)
+	o.resolveScanners(unresolvedScanners[1:], commonDetectionThreshold)
 
 	maxDist := findLargestDistance(unresolvedScanners)
 

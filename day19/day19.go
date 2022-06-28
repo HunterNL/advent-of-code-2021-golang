@@ -419,38 +419,30 @@ func countMatches2(ocean []vec3, s scanner, rot rotation, offset vec3) int {
 	return count
 }
 
-func countMatches(resolved, unresolved scanner, rot rotation, offset vec3) int {
-	// fmt.Println("Start")
+func countMatches(o *ocean, unresolved scanner, rot rotation, offset vec3) int {
 	count := 0
-	for _, aDetection := range resolved.detections {
-		for _, bDetection := range unresolved.detections {
-			bScanSpace := bDetection.localPos.applyRotation(rot)
-			aScanSpace := aDetection.localPos.applyRotation(resolved.rotation)
 
-			if (vec3equal(aDetection.localPos, vec3{404, -588, -901}) && vec3equal(bDetection.localPos, vec3{-336, 658, 858})) {
-				// fmt.Println("Reference beacons")
-			}
+	for _, detection := range unresolved.detections {
+		realPos := detection.localPos.applyRotation(rot).add(offset)
 
-			if vec3equal(aScanSpace.sub(bScanSpace), offset) {
-				count++
-				// fmt.Println("Found beacon", aDetection.localPos, bDetection.localPos)
-			}
+		if _, found := o.beacons[realPos]; found {
+			count++
 		}
 	}
-	// fmt.Println("end", count)
+
 	return count
 }
 
-func hasCommonPoints(resolved, unresolved scanner, minCount int) (bool, vec3, rotation) {
+func hasCommonPoints(scan scanner, o ocean, minCount int) (bool, vec3, rotation) {
 	for _, rot := range rotations {
-		for _, resolvedBeacon := range resolved.detections {
-			for _, unknownBeacon := range unresolved.detections {
+		for beacon := range o.beacons {
+			for _, unknownBeacon := range scan.detections {
 				bWorldSpace := unknownBeacon.localPos.applyRotation(rot)
-				aWorldSpace := resolvedBeacon.localPos.applyRotation(resolved.rotation)
+				aWorldSpace := beacon
 				offset := bWorldSpace.sub(aWorldSpace).invert()
 				// offset := unknownBeacon.localPos.applyRotation(rot).sub(resolvedBeacon.localPos.applyRotation(resolved.rotation).add(resolved.position)).invert()
 
-				count := countMatches(resolved, unresolved, rot, offset)
+				count := countMatches(&o, scan, rot, offset)
 
 				if count >= minCount {
 					// fmt.Println(rot)
@@ -558,41 +550,50 @@ func hasCommonPoints(resolved, unresolved scanner, minCount int) (bool, vec3, ro
 // 	return false, vec3{}, count
 // }
 
-func resolveScanner(base scanner, unresolved *scanner, rot rotation, offset vec3) {
-	fmt.Printf("Found scanner %v at from scanner %v, offset: %v rotation: %v \n", unresolved.id, base.id, offset, rot)
+func resolveScanner(unresolved *scanner, rot rotation, offset vec3) {
+	fmt.Printf("Found scanner %v at offset: %v rotation: %v \n", unresolved.id, offset, rot)
 
 	unresolved.resolved = true
 	unresolved.rotation = rot
-	unresolved.position = base.position.add(offset)
+	unresolved.position = offset
 }
 
-func resolveScanners(scanners []scanner, count int) {
-	var resolvedScanners int = 0
-	// var lastCount int = 0
+func removeFromSlice(slice []scanner, index int) []scanner {
+	slice[index] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+}
 
-	for resolvedScanners < len(scanners) {
-		resolvedScanners = 0
-	r:
-		for i := range scanners {
-			s := &scanners[i]
-			if s.resolved {
-				resolvedScanners++
-			} else {
-				for _, ref := range scanners {
-					// ref := &scanners[i2]
-					if !ref.resolved || ref.id == s.id {
-						continue
-					}
-					found, offset, rot := hasCommonPoints(ref, *s, count)
-					if found {
-						resolveScanner(ref, s, rot, offset)
-						// s.position = ref.position.add(offset.applyRotation(ref.rotation)).applyRotation(ref.rotation).applyRotation(ref.rotation)
-						break r
-					}
-				}
-			}
+type ocean struct {
+	beacons  map[vec3]bool
+	scanners []scanner
+}
+
+func (o *ocean) resolveScanner(s scanner, offset vec3, rot rotation) {
+	for _, detection := range s.detections {
+		o.beacons[detection.localPos.applyRotation(rot).add(offset)] = true
+	}
+
+	s.position = offset
+	s.rotation = rot
+
+	o.scanners = append(o.scanners, s)
+}
+
+func (o *ocean) resolveScanners(scanners []scanner, count int) {
+
+	for i := 0; i < len(scanners); i++ {
+		scanner := scanners[i]
+		found, offset, rot := hasCommonPoints(scanners[i], *o, count)
+		if found {
+
+			o.resolveScanner(scanner, offset, rot)
+			resolveScanner(&(scanners[i]), rot, offset)
+			scanners = removeFromSlice(scanners, i)
+
+			i = -1
 		}
 	}
+
 }
 
 // func resolveScanners(scanners []scanner, count int) {
@@ -701,10 +702,13 @@ func Solve() (int, int) {
 
 	// resolvedScanners := make([]scanner, 0, len(unresolvedScanners))
 
-	resolveScanners(unresolvedScanners, commonDetectionThreshold)
+	o := ocean{map[vec3]bool{}, []scanner{}}
+	o.resolveScanner(unresolvedScanners[0], vec3{}, rotation{0, 1, 2, 1, 1, 1})
 
-	count := countUniqueDetections(unresolvedScanners)
-	dist := findLargestDistance(unresolvedScanners)
+	o.resolveScanners(unresolvedScanners[1:], commonDetectionThreshold)
+
+	count := len(o.beacons)
+	dist := findLargestDistance(o.scanners)
 
 	fmt.Printf("Count: %v Max Distance: %v\n", count, dist)
 
