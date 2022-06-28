@@ -40,14 +40,6 @@ func (g *graphdata) getStringAsBoolPointer(str string) *bool {
 func (g *graphdata) addEdge(a *bool, b *bool) {
 	g.edges = append(g.edges, [2]*bool{a, b})
 
-	if _, found := g.lookup[a]; !found {
-		g.lookup[a] = make([]*bool, 0)
-	}
-
-	if _, found := g.lookup[b]; !found {
-		g.lookup[b] = make([]*bool, 0)
-	}
-
 	g.lookup[a] = append(g.lookup[a], b)
 	g.lookup[b] = append(g.lookup[b], a)
 }
