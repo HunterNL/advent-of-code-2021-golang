@@ -26,7 +26,10 @@ import (
 	"aoc2021/day7"
 	"aoc2021/day8"
 	"aoc2021/day9"
+	"io/ioutil"
 	"log"
+	"os"
+	"time"
 )
 
 type dayFunc = func() (int, int)
@@ -82,15 +85,23 @@ func main() {
 	days := getDays()
 
 	output := []dayResult{}
+	durations := []time.Duration{}
+
+	log.SetOutput(ioutil.Discard)
 
 	for _, dayFunc := range days {
+		start := time.Now()
 		part1, part2 := dayFunc()
 
+		durations = append(durations, time.Since(start))
 		output = append(output, dayResult{part1, part2})
 	}
 
-	for i, day := range output {
-		log.Printf("Day %v:\n\tPart 1:\t%v\n\tPart 2:\t%v\n", i+1, day.part1, day.part2)
+	log.SetOutput(os.Stdout)
+
+	for i := range output {
+		// log.Printf("Day %v:\n\tPart 1:\t%v\n\tPart 2:\t%v\n", i+1, day.part1, day.part2)
+		log.Printf("Day %2v: %4v ms\n", i+1, int64(durations[i]/time.Millisecond))
 	}
 
 	// day25.Solve()
