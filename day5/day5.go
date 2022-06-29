@@ -1,15 +1,22 @@
 package day5
 
 import (
-	"aoc2021/vec2"
 	"os"
 	"strconv"
 	"strings"
 )
 
-type grid = map[vec2.Vec2]int
+const GRID_SIZE = 1000
 
-func parseVec2(str string) vec2.Vec2 {
+type grid map[int]int
+
+type vec2 = struct{ x, y int }
+
+type line struct {
+	a, b vec2
+}
+
+func parseVec2(str string) vec2 {
 	nsec := strings.Split(str, ",")
 
 	x, err := strconv.Atoi(nsec[0])
@@ -18,22 +25,22 @@ func parseVec2(str string) vec2.Vec2 {
 	}
 	y, err := strconv.Atoi(nsec[1])
 
-	return vec2.Vec2{X: float64(x), Y: float64(y)}
+	return vec2{x, y}
 }
 
-func parseLine(str string) vec2.Line {
+func parseLine(str string) line {
 	vectors := strings.Split(str, " -> ")
 
-	return vec2.Line{
-		A: parseVec2(vectors[0]),
-		B: parseVec2(vectors[1]),
+	return line{
+		a: parseVec2(vectors[0]),
+		b: parseVec2(vectors[1]),
 	}
 }
 
-func parseFile(str string) []vec2.Line {
+func parseFile(str string) []line {
 	textLines := strings.Split(str, "\n")
 	textLines = textLines[:len(textLines)-1]
-	lines := make([]vec2.Line, len(textLines))
+	lines := make([]line, len(textLines))
 	for i, v := range textLines {
 		lines[i] = parseLine(v)
 	}
@@ -89,22 +96,22 @@ func Solve() (int, int) {
 	// }
 
 	for _, line := range lines {
-		cur := line.A
-		tar := line.B
-		dirX, dirY := dirTo(int(cur.X), int(cur.Y), int(tar.X), int(tar.Y))
+		cur := line.a
+		tar := line.b
+		dirX, dirY := dirTo(int(cur.x), int(cur.y), int(tar.x), int(tar.y))
 		if line.Isorthogonal() {
-			part1Grid[cur]++
+			part1Grid[cur.x*GRID_SIZE+cur.y]++
 		}
 
-		part2Grid[cur]++
+		part2Grid[cur.x*GRID_SIZE+cur.y]++
 		for cur != tar {
-			cur.X += float64(dirX)
-			cur.Y += float64(dirY)
+			cur.x += dirX
+			cur.y += dirY
 
-			part2Grid[cur]++
+			part2Grid[cur.x*GRID_SIZE+cur.y]++
 
 			if line.Isorthogonal() {
-				part1Grid[cur]++
+				part1Grid[cur.x*GRID_SIZE+cur.y]++
 			}
 		}
 	}
@@ -122,4 +129,16 @@ func Solve() (int, int) {
 	// log.Printf("Intersections: %v", intersections)
 
 	return part1, part2
+}
+
+func (l line) Isorthogonal() bool {
+	if l.a.x == l.b.x {
+		return true
+	}
+
+	if l.a.y == l.b.y {
+		return true
+	}
+
+	return false
 }
