@@ -48,7 +48,7 @@ func parseStep(str string) step {
 
 func parseInstructions(str string) instructions {
 	lines := strings.Split(str, "\n")
-	ins := make(instructions, len(lines), len(lines))
+	ins := make(instructions, len(lines))
 
 	for i, str := range lines {
 		ins[i] = parseStep(str)

@@ -39,77 +39,15 @@ func (l1 line) equals(l2 line) bool {
 	return l1.min == l2.min && l1.max == l2.max
 }
 
-func sort2Int(a, b int) (int, int) {
-	if a < b {
-		return a, b
-	} else {
-		return b, a
-	}
-}
-
-// Safely create a line with min/max in the righ order
-func newLine(a, b int) line {
-	if a < b {
-		return line{a, b}
-	} else {
-		return line{b, a}
-	}
-}
-
 func (container line) envelopes(containee line) bool {
 	return container.min < containee.min && container.max > containee.max
 }
 
-// Returns 1 or more lines with no overlap
-// Results cannot overlap, and must contain cut.min and cut.max
+// Returns 1 or more lines that don't overlap `cut`
 func split(primary, cut line) []line {
-	if !primary.overlaps(cut) {
-		return []line{primary, cut}
-	}
-
-	if primary.equals(cut) {
-		return []line{primary}
-	}
-
-	if cut.envelopes(primary) {
-		return []line{primary}
-		// return []line{{cut.min, primary.min - 1}, primary, {primary.max + 1, cut.max}}
-	}
-
-	if cut.min <= primary.min && cut.max >= primary.max {
-		return []line{primary}
-	}
-
 	if primary.envelopes(cut) {
 		return []line{{primary.min, cut.min - 1}, cut, {cut.max + 1, primary.max}}
 	}
-
-	if primary.min == cut.min {
-		if cut.max > primary.max {
-			return []line{primary}
-		} else {
-			return []line{cut, {cut.max + 1, primary.max}}
-		}
-	}
-
-	if primary.max == cut.max {
-		if cut.min < primary.min {
-			return []line{primary}
-		} else {
-			return []line{{primary.min, cut.min - 1}, cut}
-		}
-	}
-
-	if primary.max == cut.min {
-		return []line{{primary.min, primary.max - 1}, {primary.max, primary.max}}
-	}
-
-	if cut.max == primary.min {
-		return []line{{primary.min, primary.min}, {primary.min + 1, primary.max}}
-	}
-
-	// Last case, overlap with no common points
-	// Just take all points and sort em
 
 	cutFirst := cut.min < primary.min
 
@@ -122,32 +60,9 @@ func split(primary, cut line) []line {
 		return []line{{ints[0], ints[1] - 1}, {ints[1], ints[2]}}
 	}
 
-	// // return []line{
-	// 	{ints[0], ints[1] - 1},
-	// 	{ints[1], ints[2]},
-	// 	{ints[2] + 1, ints[3]},
-	// }
-
-	// if primary.min < cut.min {
-	// 	return []line{{primary.min, cut.min - 1}, cut}
-	// }
-
-	// if(primary.min> cut.min) {
-	// 	return []line{}
-	// }
-
-	// if(cut.max > primary.max) {
-	// 	return []line{}
-	// }
-
-	// if cut.max > primary.max {
-	// 	return []line{cut, {cut.max + 1, primary.max}}
-	// }
-
-	// panic("Unknown state")
-
 }
 
+// Creates a slice of cuboids out of every combination of gives lines
 func cuboidsFromLines(xLines, yLines, zLines []line) (out []cuboid) {
 	for _, zLine := range zLines {
 
@@ -163,17 +78,6 @@ func cuboidsFromLines(xLines, yLines, zLines []line) (out []cuboid) {
 
 	return out
 }
-
-// func (c1 cuboid) overlapVolume(c2 cuboid) int {
-// 	return
-// }
-
-// func (l1 line) overlapSize(l2 line) {
-
-// }
-// func (l line) length() int {
-// 	return l.max - l.min
-// }
 
 type step struct {
 	area  cuboid
@@ -240,6 +144,7 @@ func paranoidLineOverlapCheck(axis [][]line, cut cuboid) {
 	}
 }
 
+// Returns a list of cuboids that make up the given `primary` cuboid, with any
 func carveCuboid(primary, cut cuboid) []cuboid {
 	xLines := split(primary.x, cut.x)
 	yLines := split(primary.y, cut.y)
@@ -251,22 +156,20 @@ func carveCuboid(primary, cut cuboid) []cuboid {
 
 	// paranoidCuboidOverlapCheck(cuboids)
 
-	out := []cuboid{}
+	out := make([]cuboid, 0, len(xLines)*len(yLines)*len(zLines))
 	sum := 0
 
+	// Only include cuboids that make up the base cuboid
 	for _, c := range cuboids {
-
-		if !c.overlaps(cut) && c.overlaps(primary) {
+		if c.overlaps(primary) {
 			out = append(out, c)
 			sum += c.volume()
 		}
 	}
 
 	if sum > primary.volume() {
-		panic("Volume grew?!")
+		panic("Volume grew?!") //Sanity check
 	}
-
-	// log.Printf("Input|Cut|Final %v|%v|%v\n", primary.volume(), cut.volume(), sum)
 
 	return out
 }
@@ -277,7 +180,6 @@ func (c1 cuboid) overlaps(c2 cuboid) bool {
 
 func (c cuboid) volume() int {
 	return c.x.size() * c.y.size() * c.z.size()
-	// return (c.max.x - c.min.x + 1) * (c.max.y - c.min.y + 1) * (c.max.y - c.min.y + 1)
 }
 
 func (b *cuboidReactor) countOn() int {
@@ -301,26 +203,27 @@ func (c cuboid) String() string {
 	return fmt.Sprintf("[%v | %v]", c.x.min, c.x.max)
 }
 
-func removeOverlap(reactor cuboidReactor, newArea cuboid) cuboidReactor {
+//Removes any areas overlapping the given area from the reactor
+func removeOverlap(reactor cuboidReactor, clearArea cuboid) cuboidReactor {
+
 	for i := 0; i < len(reactor); i++ {
 		reactorCube := reactor[i]
-		if reactorCube.overlaps(newArea) {
-			// log.Printf("Existing cube %v [%v] overlaps with %v, splitting\n", reactorCube, i, newArea)
 
-			// Remove cube from reactor
+		if reactorCube.overlaps(clearArea) {
+
+			// Remove existing cube from reactor
 			reactor[i] = reactor[len(reactor)-1]
 			reactor = reactor[:len(reactor)-1]
 
-			newCuboids := carveCuboid(reactorCube, newArea)
+			// Carve up the removed cube into smaller 'cubelets' making up the same area
+			newCuboids := carveCuboid(reactorCube, clearArea)
 			for _, cubelet := range newCuboids {
 
 				// Add every cubelet not overlapping the area to clear
-				if !cubelet.overlaps(newArea) {
-					// log.Printf("Adding %v to reactor\n", cubelet)
+				if !cubelet.overlaps(clearArea) {
 					reactor = append(reactor, cubelet)
-				} else {
-					// log.Printf("Discarding %v\n", cubelet)
 				}
+				// Cubelets not used added are discarded
 			}
 
 			//New area may overlap with multiple existing cubes, and we've messed with the array we're looping over, just restart
