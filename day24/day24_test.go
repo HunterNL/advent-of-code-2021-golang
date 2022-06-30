@@ -60,6 +60,7 @@ func TestIntSlice(t *testing.T) {
 }
 
 func TestMonad(t *testing.T) {
+	t.SkipNow() // Example input is not a valid serial
 	program := parseInstructions(file.ReadFile("./input.txt"))
 
 	a1 := alu{}
@@ -71,6 +72,7 @@ func TestMonad(t *testing.T) {
 }
 
 func TestMonadInputs(t *testing.T) {
+	t.SkipNow() // Only used for quickly running this func in development
 	file, err := os.ReadFile("./input.txt")
 	if err != nil {
 		panic(err)
@@ -100,6 +102,7 @@ func TestMonadInputs(t *testing.T) {
 }
 
 func TestSections(t *testing.T) {
+	t.SkipNow() // Only used for quickly running this func in development
 	file, err := os.ReadFile("./input.txt")
 	if err != nil {
 		t.Log(err)
@@ -129,6 +132,7 @@ func TestSections(t *testing.T) {
 }
 
 func TestFinalSection(t *testing.T) {
+	t.SkipNow() // Only used for quickly running this func in development
 	file, err := os.ReadFile("./input.txt")
 	if err != nil {
 		t.Log(err)
@@ -150,6 +154,7 @@ func TestFinalSection(t *testing.T) {
 	t.Fail()
 }
 
+// Interpreted ALU and the executeStep function need to behave identically
 func TestStepParity(t *testing.T) {
 	file, err := os.ReadFile("./input.txt")
 	if err != nil {

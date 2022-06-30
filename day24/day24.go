@@ -1,7 +1,6 @@
 package day24
 
 import (
-	"aoc2021/file"
 	"errors"
 	"fmt"
 	"log"
@@ -215,6 +214,16 @@ func sliceInt(in int) []int {
 	return out
 }
 
+func createIntSlice(content, size int) []int {
+	slice := make([]int, size)
+
+	for i := range slice {
+		slice[i] = content
+	}
+
+	return slice
+}
+
 func parseSectionConfig(lines []string) sectionConfig {
 	xAddLine := lines[5]
 	xAddStr := strings.Split(xAddLine, " ")[2]
@@ -251,6 +260,7 @@ type sectionConfig struct {
 	yAdd     int
 }
 
+// Replicates what the ALU is doing, any step-to-step changes in the original input are input here area sectionConfig
 func sectionStep(a *alu, s sectionConfig, input int) {
 	a[3] = input
 	x := (a[2] % 26) + s.xAdd
@@ -311,29 +321,24 @@ const leftSize = numSize - highestBacktraceSection
 
 // const
 
-func BruteForceDown() int {
-	sectionFile, err := os.ReadFile("./day24/input.txt")
-	if err != nil {
-		panic(err)
-	}
+type zStateLookup map[int]map[int]bool
 
-	// var incIndex int
-
-	_, sections, steps, _ := programs(sectionFile)
-	zUpperLimit := 1
-	acceptedZExitState := make(map[int]map[int]bool)
+// Works backwards from the final step (where Z has to be 0) and bruteforces zValues in the previous step to see what zValues leads to succesfull zValues in the next step
+func findValidZStates(steps []sectionConfig) zStateLookup {
+	acceptedZExitState := make(zStateLookup)
 	for i := 0; i < 13; i++ {
 		acceptedZExitState[i] = map[int]bool{}
 
 	}
 
+	zUpperLimit := 1
 	acceptedZExitState[13] = map[int]bool{0: true}
 
 	a0 := alu{}
 
 	for sectionId := 13; sectionId >= highestBacktraceSection; sectionId-- {
 		step := steps[sectionId]
-		zUpperLimit = zUpperLimit * step.zDivStep
+		zUpperLimit = zUpperLimit * step.zDivStep // A high devisor increases bruteforce area
 		for input := 1; input <= 9; input++ {
 			for zState := 0; zState < zUpperLimit; zState++ {
 
@@ -354,199 +359,58 @@ func BruteForceDown() int {
 
 	log.Print(len(acceptedZExitState[highestBacktraceSection-1]))
 
-	// return
-
-	leftALU := alu{}
-	// num := [14]int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}
-
-	leftNum := [8]int{9, 9, 9, 9, 9, 9, 9, 9}
-
-	log.Println("Left slice:", leftNum[:7])
-
-	for leftNum != [8]int{1, 1, 1, 1, 1, 1, 1, 1} {
-		// if num[13] == 9 && num[12] == 9 && num[11] == 9 && num[10] == 9 && num[9] == 9 && num[8] == 9 && num[7] == 9 {
-		// 	log.Printf("N: %v\n", num)
-		// }
-
-		if leftNum[7] == 9 && leftNum[6] == 9 && leftNum[5] == 9 && leftNum[4] == 9 && leftNum[3] == 9 && leftNum[2] == 9 {
-			log.Printf("Current leftNum: %v\n", leftNum)
-		}
-
-		leftALU.reset()
-		leftALU.executeSteps(steps[:8], leftNum[:8])
-
-		_, isValidZ := acceptedZExitState[7][leftALU[2]]
-
-		if isValidZ {
-			log.Println("Found valid starting digits!", leftNum, leftALU[2])
-			rightNum := [6]int{9, 9, 9, 9, 9, 9}
-
-			for rightNum != [6]int{1, 1, 1, 1, 1, 1} {
-				rightALU := leftALU //Reset to a1 state every attempt
-				var sectionId int
-				for sectionId = 8; sectionId < len(sections); sectionId++ {
-
-					rightALU.executeStep(steps[sectionId], rightNum[sectionId-8])
-
-					// _, stillValidZ := acceptedZState[sectionId][a1[2]]
-
-					if sectionId == 13 && rightALU[2] == 0 {
-						log.Printf("Found result: %v %v", leftNum, rightNum)
-						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
-					}
-
-					// if !stillValidZ {
-					// 	break
-					// }
-				}
-				decrementNum(rightNum[:], 5)
-			}
-			log.Println("Somehow failed!")
-		}
-
-		decrementNum(leftNum[:], 7)
-
-	}
-
-	return -1
+	return acceptedZExitState
 }
 
-func BruteForceUp() int {
-	sectionFile, err := os.ReadFile("./day24/input.txt")
-	if err != nil {
-		panic(err)
-	}
-
-	// var incIndex int
-
-	_, sections, steps, _ := programs(sectionFile)
-	zUpperLimit := 1
-	acceptedZExitState := make(map[int]map[int]bool)
-	for i := 0; i < 13; i++ {
-		acceptedZExitState[i] = map[int]bool{}
-
-	}
-
-	acceptedZExitState[13] = map[int]bool{0: true}
-
-	a0 := alu{}
-
-	for sectionId := 13; sectionId >= highestBacktraceSection; sectionId-- {
-		step := steps[sectionId]
-		zUpperLimit = zUpperLimit * step.zDivStep
-		for input := 1; input <= 9; input++ {
-			for zState := 0; zState < zUpperLimit; zState++ {
-
-				a0[2] = zState
-				a0.executeStep(step, input)
-				_, isValid := acceptedZExitState[sectionId][a0[2]]
-				if isValid {
-					acceptedZExitState[sectionId-1][zState] = true
-				}
-				a0.reset()
-			}
-
-		}
-
-		log.Printf("Found %v valid exit states for section %v while Zlimit is %v\n", len(acceptedZExitState[sectionId-1]), sectionId-1, zUpperLimit)
-
-	}
-
-	log.Print(len(acceptedZExitState[highestBacktraceSection-1]))
-
-	// return
+func bruteForce(steps []sectionConfig, validzSates zStateLookup, advanceFunc func([]int, int) bool, startDigit int) int {
 
 	leftALU := alu{}
-	// num := [14]int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}
-
-	leftNum := [8]int{1, 1, 1, 1, 1, 1, 1, 1}
+	leftNum := createIntSlice(startDigit, 8)
 
 	log.Println("Left slice:", leftNum[:7])
-
-	for leftNum != [8]int{9, 9, 9, 9, 9, 9, 9, 9} {
-		// if num[13] == 9 && num[12] == 9 && num[11] == 9 && num[10] == 9 && num[9] == 9 && num[8] == 9 && num[7] == 9 {
-		// 	log.Printf("N: %v\n", num)
-		// }
-
-		if leftNum[7] == 9 && leftNum[6] == 9 && leftNum[5] == 9 && leftNum[4] == 9 && leftNum[3] == 9 && leftNum[2] == 9 {
-			log.Printf("Current leftNum: %v\n", leftNum)
-		}
-
-		leftALU.reset()
-		leftALU.executeSteps(steps[:8], leftNum[:8])
-
-		_, isValidZ := acceptedZExitState[7][leftALU[2]]
-
-		if isValidZ {
-			log.Println("Found valid starting digits!", leftNum, leftALU[2])
-			rightNum := [6]int{1, 1, 1, 1, 1, 1}
-
-			for rightNum != [6]int{9, 9, 9, 9, 9, 9} {
-				rightALU := leftALU //Reset to a1 state every attempt
-				var sectionId int
-				for sectionId = 8; sectionId < len(sections); sectionId++ {
-
-					rightALU.executeStep(steps[sectionId], rightNum[sectionId-8])
-
-					// _, stillValidZ := acceptedZState[sectionId][a1[2]]
-
-					if sectionId == 13 && rightALU[2] == 0 {
-
-						log.Printf("Found result: %v %v", leftNum, rightNum)
-						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
-					}
-
-					// if !stillValidZ {
-					// 	break
-					// }
-				}
-				incrementNum(rightNum[:], 5)
-			}
-			log.Println("Somehow failed!")
-		}
-
-		incrementNum(leftNum[:], 7)
-
-	}
-
-	return -1
-}
-
-func BruteForce() {
-	program := parseInstructions(file.ReadFile("./day24/input.txt"))
-	num := [14]int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9}
-	a1 := alu{}
-	var incIndex int
 
 	for {
-		if num[13] == 9 && num[12] == 9 && num[11] == 9 && num[10] == 9 && num[9] == 9 {
-			log.Printf("N: %v\n", num)
+
+		if leftNum[7] == 9 && leftNum[6] == 9 && leftNum[5] == 9 && leftNum[4] == 9 && leftNum[3] == 9 && leftNum[2] == 9 {
+			log.Printf("Current leftNum: %v\n", leftNum)
 		}
 
-		a1.executeInstructions(program, num[:])
-		// if a1[2] == 0 {
-		// 	log.Printf("Found %v\n", num)
-		// 	break
-		// }
+		leftALU.reset()
+		leftALU.executeSteps(steps[:8], leftNum[:8])
 
-		log.Println(a1)
-		break
-		a1.reset()
+		_, isValidZ := validzSates[7][leftALU[2]]
 
-		incIndex = 13
-		for incIndex >= 0 {
-			num[incIndex]--
-			if num[incIndex] == 0 {
-				num[incIndex] = 9
-				incIndex--
-				continue
+		if isValidZ {
+			log.Println("Found valid starting digits!", leftNum, leftALU[2])
+			rightNum := createIntSlice(startDigit, 6)
+
+			for {
+				rightALU := leftALU //Reset to a1 state every attempt
+				var sectionId int
+				for sectionId = 8; sectionId < len(steps); sectionId++ {
+
+					rightALU.executeStep(steps[sectionId], rightNum[sectionId-8])
+
+					if sectionId == 13 && rightALU[2] == 0 {
+						log.Printf("Found result: %v %v", leftNum, rightNum)
+						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
+					}
+
+				}
+				if advanceFunc(rightNum[:], 5) {
+					break
+				}
 			}
+			log.Println("Somehow failed!")
+		}
+
+		if advanceFunc(leftNum[:], 7) {
 			break
 		}
 
 	}
 
-	// instructions := parseInstructions(file.ReadFile("./day24/input.txt"))
+	return -1
 }
 
 func digitSliceToInt(digits []int) int {
@@ -558,97 +422,17 @@ func digitSliceToInt(digits []int) int {
 }
 
 func Solve() (int, int) {
-	upper := BruteForceDown()
-	lower := BruteForceUp()
-	return upper, lower
-
 	sectionFile, err := os.ReadFile("./day24/input.txt")
 	if err != nil {
 		panic(err)
 	}
+	_, _, steps, _ := programs(sectionFile)
 
-	_, sections, _, _ := programs(sectionFile)
+	// Calculate z targets, valid for both attempts
+	zStates := findValidZStates(steps)
 
-	// defaultProgram := parseInstructions(file.ReadFile("./day24/input.txt"))
+	upper := bruteForce(steps, zStates, decrementNum, 9)
+	lower := bruteForce(steps, zStates, incrementNum, 1)
 
-	// sections := strings.Split(strings.TrimSpace(string(sectionFile)), "inp w\n")[1:]
-	// programs := [][]instruction{}
-
-	// for _, section := range sections {
-	// 	lines := strings.Split(strings.TrimSpace(section), "\n")
-	// 	lines = append([]string{"inp w"}, lines...)
-	// 	programs = append(programs, parseInstructions(lines))
-	// }
-
-	type aluState struct{ input, zState int }
-
-	workingInputs := make(map[int][]int)
-	workingStates := make(map[int][]int)
-	workingCombo := make(map[int][]aluState)
-	stateMap := make(map[int]map[int]bool)
-
-	acceptedZState := []int{0}
-
-	inputForZState := make(map[int]map[int]int, 0)
-
-	for sectionId := 13; sectionId >= 0; sectionId-- {
-		inputForZState[sectionId] = map[int]int{}
-
-		workingInputs[sectionId] = make([]int, 0, 10)
-		workingStates[sectionId] = make([]int, 0, 10)
-
-		stateMap[sectionId] = make(map[int]bool)
-
-		workingCombo[sectionId] = make([]aluState, 0, 10)
-
-		log.Printf("Starting section %v\n", sectionId)
-
-		for inputDigit := 1; inputDigit <= 9; inputDigit++ {
-			// log.Printf("Starting input %v\n", inputDigit)
-			for zState := 0; zState <= 26; zState++ {
-				// log.Printf("Starting state %v\n", zState)
-				a1 := alu{0, 0, zState, 0}
-				a1.executeInstructions(sections[sectionId], []int{inputDigit})
-
-				aluZState := a1[2]
-
-				for _, aState := range acceptedZState {
-					if aluZState == aState {
-						// inputForZState[sectionId][zState] = inputDigit
-						// log.Println("Wait wat 2")
-						workingInputs[sectionId] = append(workingInputs[sectionId], inputDigit)
-						workingStates[sectionId] = append(workingStates[sectionId], zState)
-
-						workingCombo[sectionId] = append(workingCombo[sectionId], aluState{inputDigit, aState})
-
-						stateMap[sectionId][zState] = true
-						// log.Println("Wait a sec now")
-					}
-				}
-				// log.Printf("Alu state for (I:%v, Z:%v): %v\n", inputDigit, zState, a1)
-			}
-		}
-
-		acceptedZState = workingStates[sectionId]
-		// log.Printf()
-
-		if len(stateMap[sectionId]) == 26 {
-			log.Println("Found section that allows all digits")
-			break
-		}
-
-		log.Printf("New target Z states (%v): %v\n", len(acceptedZState), acceptedZState)
-	}
-
-	// a2 := alu{}
-
-	// a2.executeInstructions(defaultProgram, []int{9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9})
-
-	// log.Println(a2)
-
-	// log.Print(workingInputs)
-	// log.Print(workingStates)
-
-	return -1, -1
-
+	return upper, lower
 }
