@@ -6,13 +6,16 @@ import (
 	"strings"
 )
 
-type route = []*bool
+// Pointers are used to uniquely identify a cave, it's value used for cave size
+// "Cave" pointers are never used to change the pointed value
+type cave *bool
+type route []cave
 
 func isUpper(str string) bool {
 	return strings.ToUpper(str) == str
 }
 
-func visited(needle *bool, haystack route) bool {
+func visited(needle cave, haystack route) bool {
 	for _, v := range haystack {
 		if v == needle {
 			return true
@@ -22,11 +25,11 @@ func visited(needle *bool, haystack route) bool {
 	return false
 }
 
-func travel(g Graph, start *bool, behind route) []route {
+func travel(g Graph, start cave, behind route) []route {
 	path := append(behind, start)
 
 	if start == g.getStringAsBoolPointer("end") {
-		return [][]*bool{path}
+		return []route{path}
 	}
 
 	routes := []route{}
@@ -47,55 +50,34 @@ func travel(g Graph, start *bool, behind route) []route {
 	return routes
 }
 
-func visitCount(cave *bool, behind route) int {
-	sum := 0
-	for _, v := range behind {
-		if v == cave {
-			sum++
-		}
-	}
-
-	return sum
-}
-
-func canComplexTravel(to *bool, behind route, startPtr *bool) bool {
+// Returns if we travel to `to`
+// Note that unlike "cave" bool pointers, this plain pointer does update `visitedAnySmallCaveTwice`
+func canComplexTravel(to cave, behind route, startPtr cave, visitedAnySmallCaveTwice *bool) bool {
+	// Probit reentering starting cave
 	if to == startPtr {
 		return false
 	}
 
 	if *to {
-		// log.Printf("Route %v can travel to %v\n", behind, to)
-		return true
-	} else {
-		// log.Printf("Visited %v before: %v Visited any small cave twice: %v\n", to, visited(to, behind), visitedAnySmallCaveTwice(behind))
-		return !visited(to, behind) || !visitedAnySmallCaveTwice(behind)
+		return true // Large caves are always fine
 	}
 
-}
-
-// #PERFORMANCE Turn route into a struct and set value once
-func visitedAnySmallCaveTwice(route []*bool) bool {
-	seen := make(map[*bool]bool)
-
-	for _, v := range route {
-		if *v {
-			continue // Ignore large caves
+	if visited(to, behind) {
+		if *visitedAnySmallCaveTwice {
+			return false // Prohibit visiting twice
+		} else {
+			*visitedAnySmallCaveTwice = true
+			return true
 		}
-		if seen[v] {
-			return true // We've seen this cave small before
-		}
-		seen[v] = true // Note that we've seen this small cave
-
 	}
-
-	return false
+	return true // Unvisited cave
 }
 
-func travelComplex(g Graph, start *bool, behind route) []route {
+func travelComplex(g Graph, start cave, behind route, visitedAnySmallCaveTwice bool) []route {
 	path := append(behind, start)
 
 	if start == g.getStringAsBoolPointer("end") {
-		return [][]*bool{path}
+		return []route{path}
 	}
 
 	routes := []route{}
@@ -103,8 +85,9 @@ func travelComplex(g Graph, start *bool, behind route) []route {
 	neighbours := g.getNeighbours(start)
 
 	for _, n := range neighbours {
-		if canComplexTravel(n, path, g.getStringAsBoolPointer("start")) {
-			routes = append(routes, travelComplex(g, n, path)...)
+		localDidVisitTwice := visitedAnySmallCaveTwice
+		if canComplexTravel(n, path, g.getStringAsBoolPointer("start"), &localDidVisitTwice) {
+			routes = append(routes, travelComplex(g, n, path, localDidVisitTwice)...)
 		}
 	}
 
@@ -124,13 +107,13 @@ func parseGraph(lines []string) graphdata {
 
 func countRoutes(g Graph) int {
 	start := g.getStringAsBoolPointer("start")
-	routes := travel(g, start, []*bool{})
+	routes := travel(g, start, []cave{})
 	return len(routes)
 }
 
 func countComplexRoutes(g Graph) int {
 	start := g.getStringAsBoolPointer("start")
-	routes := travelComplex(g, start, []*bool{})
+	routes := travelComplex(g, start, []cave{}, false)
 	return len(routes)
 }
 
