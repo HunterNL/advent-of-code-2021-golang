@@ -20,29 +20,26 @@ func visited(needle cave, haystack route) bool {
 	return needle&cave(haystack) > 0
 }
 
-func travel(g Graph, start cave, behind route) []route {
+func travel(g Graph, start cave, behind route, routeCount *int) {
 	path := behind | route(start)
 
 	if start == g.getStringAsBoolPointer("end") {
-		return []route{path}
+		*routeCount++
+		return
 	}
-
-	routes := []route{}
 
 	neighbours := g.getNeighbours(start)
 
 	for _, n := range neighbours {
 		if n&LARGE_CAVE_BIT > 0 {
-			routes = append(routes, travel(g, n, path)...)
+			travel(g, n, path, routeCount)
 		} else {
 			if !visited(n, path) {
-				routes = append(routes, travel(g, n, path)...)
+				travel(g, n, path, routeCount)
 			}
 		}
 
 	}
-
-	return routes
 }
 
 // Returns if we travel to `to`
@@ -70,25 +67,23 @@ func canComplexTravel(to cave, behind route, startPtr cave, visitedAnySmallCaveT
 	return true // Unvisited cave
 }
 
-func travelComplex(g Graph, start cave, behind route, visitedAnySmallCaveTwice bool) []route {
+func travelComplex(g Graph, start cave, behind route, visitedAnySmallCaveTwice bool, routeCount *int) {
 	path := behind | route(start)
 
 	if start == g.getStringAsBoolPointer("end") {
-		return []route{path}
+		*routeCount++
+		return
 	}
-
-	routes := []route{}
 
 	neighbours := g.getNeighbours(start)
 
 	for _, n := range neighbours {
 		localDidVisitTwice := visitedAnySmallCaveTwice
 		if canComplexTravel(n, path, g.getStringAsBoolPointer("start"), &localDidVisitTwice) {
-			routes = append(routes, travelComplex(g, n, path, localDidVisitTwice)...)
+			travelComplex(g, n, path, localDidVisitTwice, routeCount)
 		}
 	}
 
-	return routes
 }
 
 func parseGraph(lines []string) graphdata {
@@ -104,14 +99,16 @@ func parseGraph(lines []string) graphdata {
 
 func countRoutes(g Graph) int {
 	start := g.getStringAsBoolPointer("start")
-	routes := travel(g, start, route(0))
-	return len(routes)
+	count := 0
+	travel(g, start, route(0), &count)
+	return count
 }
 
 func countComplexRoutes(g Graph) int {
 	start := g.getStringAsBoolPointer("start")
-	routes := travelComplex(g, start, route(0), false)
-	return len(routes)
+	count := 0
+	travelComplex(g, start, route(0), false, &count)
+	return count
 }
 
 func Solve() (int, int) {
