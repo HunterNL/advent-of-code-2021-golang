@@ -6,27 +6,22 @@ import (
 	"strings"
 )
 
-// Pointers are used to uniquely identify a cave, it's value used for cave size
-// "Cave" pointers are never used to change the pointed value
-type cave *bool
-type route []cave
+// Caves are a single bit in a uint32, large status being indicated by LARGE_CAVE_BIT
+type cave uint32
+
+// Routes are a combination of cave bits
+type route uint32
 
 func isUpper(str string) bool {
 	return strings.ToUpper(str) == str
 }
 
 func visited(needle cave, haystack route) bool {
-	for _, v := range haystack {
-		if v == needle {
-			return true
-		}
-	}
-
-	return false
+	return needle&cave(haystack) > 0
 }
 
 func travel(g Graph, start cave, behind route) []route {
-	path := append(behind, start)
+	path := behind | route(start)
 
 	if start == g.getStringAsBoolPointer("end") {
 		return []route{path}
@@ -37,7 +32,7 @@ func travel(g Graph, start cave, behind route) []route {
 	neighbours := g.getNeighbours(start)
 
 	for _, n := range neighbours {
-		if *n {
+		if n&LARGE_CAVE_BIT > 0 {
 			routes = append(routes, travel(g, n, path)...)
 		} else {
 			if !visited(n, path) {
@@ -58,7 +53,9 @@ func canComplexTravel(to cave, behind route, startPtr cave, visitedAnySmallCaveT
 		return false
 	}
 
-	if *to {
+	isLarge := to&LARGE_CAVE_BIT > 0
+
+	if isLarge {
 		return true // Large caves are always fine
 	}
 
@@ -74,7 +71,7 @@ func canComplexTravel(to cave, behind route, startPtr cave, visitedAnySmallCaveT
 }
 
 func travelComplex(g Graph, start cave, behind route, visitedAnySmallCaveTwice bool) []route {
-	path := append(behind, start)
+	path := behind | route(start)
 
 	if start == g.getStringAsBoolPointer("end") {
 		return []route{path}
@@ -107,19 +104,21 @@ func parseGraph(lines []string) graphdata {
 
 func countRoutes(g Graph) int {
 	start := g.getStringAsBoolPointer("start")
-	routes := travel(g, start, []cave{})
+	routes := travel(g, start, route(0))
 	return len(routes)
 }
 
 func countComplexRoutes(g Graph) int {
 	start := g.getStringAsBoolPointer("start")
-	routes := travelComplex(g, start, []cave{}, false)
+	routes := travelComplex(g, start, route(0), false)
 	return len(routes)
 }
 
 func Solve() (int, int) {
 	lines := file.ReadFile("./day12/input.txt")
 	g := parseGraph(lines)
+
+	log.Println("cave count", len(g.idMap))
 
 	count := countRoutes(&g)
 	countComplex := countComplexRoutes(&g)
