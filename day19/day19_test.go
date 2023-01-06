@@ -109,6 +109,8 @@ func TestCount(t *testing.T) {
 		panic(err)
 	}
 
+	unresolvedScanners[0].resolved = true
+
 	o := oceanFromStartingScanner(unresolvedScanners[0])
 
 	o.resolveScanners(unresolvedScanners[1:], commonDetectionThreshold)

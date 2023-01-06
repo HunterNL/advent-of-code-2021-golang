@@ -4,6 +4,7 @@ import (
 	"aoc2021/intmath"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -111,6 +112,7 @@ type scanner struct {
 	rotation   rotation
 	position   vec3
 	resolved   bool
+	links      map[[3]int]link
 }
 
 func parseDetection(str string) ([]detection, []scanner) {
@@ -120,7 +122,7 @@ func parseDetection(str string) ([]detection, []scanner) {
 
 	for i, s := range scanstring {
 		lines := strings.Split(s, "\n")[1:]
-		scan := scanner{id: i}
+		scan := scanner{id: i, links: make(map[[3]int]link)}
 
 		for _, l := range lines {
 			position := parseVec3(l)
@@ -129,6 +131,29 @@ func parseDetection(str string) ([]detection, []scanner) {
 			scan.detections = append(scan.detections, detection)
 			scan.rotation = rotation{0, 1, 2, 1, 1, 1}
 		}
+
+		for i, leftDetection := range scan.detections {
+			for i2 := len(scan.detections) - 1; i2 > i; i2-- {
+				rightDetection := scan.detections[i2]
+				diff := rightDetection.localPos.sub(leftDetection.localPos)
+
+				looseInts := [3]int{intmath.Abs(diff.x), intmath.Abs(diff.y), intmath.Abs(diff.z)}
+				intslice := looseInts[:]
+
+				sort.Ints(intslice)
+
+				link := link{
+					a:         intslice[0],
+					b:         intslice[1],
+					c:         intslice[2],
+					movement:  diff,
+					detection: [2]detection{leftDetection, rightDetection},
+				}
+
+				scan.links[looseInts] = link
+			}
+		}
+
 		scanners = append(scanners, scan)
 	}
 
@@ -159,6 +184,17 @@ func parseVec3(line string) vec3 {
 	return vec3{x: x, y: y, z: z}
 }
 
+func countLinks(resolved, unresolved *scanner) int {
+	count := 0
+	for k := range resolved.links {
+		_, found := unresolved.links[k]
+		if found {
+			count++
+		}
+	}
+	return count
+}
+
 func countMatches(o *ocean, unresolved scanner, rot rotation, offset vec3) int {
 	count := 0
 
@@ -174,7 +210,18 @@ func countMatches(o *ocean, unresolved scanner, rot rotation, offset vec3) int {
 }
 
 func hasCommonPoints(scan scanner, o ocean, minCount int) (bool, vec3, rotation) {
-	for _, rot := range rotations {
+	for _, resolvedScanner := range o.scanners {
+		if !resolvedScanner.resolved {
+			continue
+		}
+
+		if countLinks(&resolvedScanner, &scan) < minCount {
+			continue
+		}
+
+		rot := findRotation(&resolvedScanner, &scan)
+
+		// for _, rot := range rotations {
 		for beacon := range o.beacons {
 			for _, unknownBeacon := range scan.detections {
 				bWorldSpace := unknownBeacon.localPos.applyRotation(rot)
@@ -188,10 +235,28 @@ func hasCommonPoints(scan scanner, o ocean, minCount int) (bool, vec3, rotation)
 				}
 			}
 		}
-
+		// }
 	}
 
 	return false, vec3{}, rotation{}
+}
+
+func findRotation(resolved, unresolved *scanner) (out rotation) {
+	for k1, v1 := range resolved.links {
+		l2, found := unresolved.links[k1]
+		if !found {
+			continue
+		}
+
+		for _, rot := range rotations {
+			if l2.movement.applyRotation(rot) == v1.movement.applyRotation(resolved.rotation) {
+				return rot
+			}
+		}
+
+	}
+
+	panic("rotation not found")
 }
 
 func removeFromSlice(slice []scanner, index int) []scanner {
@@ -199,13 +264,20 @@ func removeFromSlice(slice []scanner, index int) []scanner {
 	return slice[:len(slice)-1]
 }
 
+type link struct {
+	a, b, c   int
+	movement  vec3
+	detection [2]detection
+}
+
 type ocean struct {
 	beacons  map[vec3]bool
 	scanners []scanner
+	links    map[[3]int]link
 }
 
 func oceanFromStartingScanner(s scanner) ocean {
-	o := ocean{map[vec3]bool{}, []scanner{}}
+	o := ocean{map[vec3]bool{}, []scanner{}, map[[3]int]link{}}
 	o.resolveScanner(s, vec3{}, rotation{0, 1, 2, 1, 1, 1})
 	return o
 }
