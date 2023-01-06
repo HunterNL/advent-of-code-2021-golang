@@ -137,7 +137,7 @@ func printGrid(grid *map[xy]bool) string {
 	return sb.String()
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	bytes, err := os.ReadFile("./day13/input.txt")
 	if err != nil {
 		panic(err)
@@ -162,7 +162,7 @@ func Solve() (int, int) {
 
 	log.Print(gridstr)
 
-	return part1, -1
+	return part1, -1, nil
 
 	// os.WriteFile("output.txt", []byte(gridstr), fs.ModeAppend)
 }

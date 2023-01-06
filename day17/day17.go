@@ -81,7 +81,7 @@ func countHits(t target) int {
 	return hits
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	input := "target area: x=209..238, y=-86..-59"
 	target := parseTarget(input)
 	// x := findValidX(target)
@@ -98,6 +98,6 @@ func Solve() (int, int) {
 
 	log.Printf("Hit %v hitCount: %v\n", hit, hitCount)
 
-	return maxY, hitCount
+	return maxY, hitCount, nil
 
 }

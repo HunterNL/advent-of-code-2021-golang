@@ -57,7 +57,7 @@ func CalcFuelExpensive(crabPos []int) int {
 	return minFuel
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day7/input.txt")
 	if err != nil {
 		panic(err)
@@ -80,5 +80,5 @@ func Solve() (int, int) {
 	// log.Printf("Part 1: Crab movement: %v\n", part1)
 	// log.Printf("Part 2: Crab movement: %v\n", part2)
 
-	return part1, part2
+	return part1, part2, nil
 }

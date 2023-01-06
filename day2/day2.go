@@ -15,7 +15,7 @@ func splitCommand(str string) (string, int) {
 	return split[0], num
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	horizontal := 0
 	depth := 0
 	aim := 0
@@ -56,6 +56,6 @@ func Solve() (int, int) {
 
 	part2 := horizontal * depth
 
-	return part1, part2
+	return part1, part2, nil
 
 }

@@ -42,7 +42,7 @@ func CalcLanternFish(startFish []int, interations int) int {
 
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day6/input.txt")
 	if err != nil {
 		panic(err)
@@ -64,5 +64,5 @@ func Solve() (int, int) {
 
 	// log.Printf("Fishes part1: %v part2: %v", part1, part2)
 
-	return part1, part2
+	return part1, part2, nil
 }

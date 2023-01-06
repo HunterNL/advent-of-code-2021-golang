@@ -74,7 +74,7 @@ func countIntersections(g *grid) int {
 	return intersections
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day5/input.txt")
 	if err != nil {
 		panic(err)
@@ -128,7 +128,7 @@ func Solve() (int, int) {
 
 	// log.Printf("Intersections: %v", intersections)
 
-	return part1, part2
+	return part1, part2, nil
 }
 
 func (l line) Isorthogonal() bool {

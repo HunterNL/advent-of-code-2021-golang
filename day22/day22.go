@@ -234,7 +234,7 @@ func removeOverlap(reactor cuboidReactor, clearArea cuboid) cuboidReactor {
 	return reactor
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	bytes, err := os.ReadFile("./day22/input.txt")
 
 	if err != nil {
@@ -260,5 +260,5 @@ func Solve() (int, int) {
 
 	log.Println("Count on:", sum)
 
-	return p1, sum
+	return p1, sum, nil
 }

@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day1/input.txt")
 	if err != nil {
-		panic(err.Error())
+		return -1, -1, err
 	}
 
 	str := string(file)
@@ -19,7 +19,7 @@ func Solve() (int, int) {
 	for i, s := range rawstrings {
 		numlist[i], err = strconv.Atoi(s)
 		if err != nil {
-			panic(err.Error())
+			return -1, -1, err
 		}
 	}
 
@@ -53,6 +53,6 @@ func Solve() (int, int) {
 
 	// log.Printf("%d out of %d", reduceCount, len(numlist))
 
-	return reduceCount, reduceCount2
+	return reduceCount, reduceCount2, nil
 
 }

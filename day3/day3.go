@@ -60,7 +60,7 @@ func part2(lines []string, invert bool) string {
 	panic("aaaaa")
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	lines := aocutil.ReadFile("./day3/input.txt")
 
 	byteMiddle := len(lines) / 2
@@ -99,7 +99,7 @@ func Solve() (int, int) {
 
 	part2 := oxyRating * cooRating
 
-	return part1, int(part2)
+	return part1, int(part2), nil
 
 	// Oxygen generator rating
 	// log.Printf("Oxy rating: %v cooRating: %v multiplied: %v", oxyRating, cooRating, oxyRating*cooRating)

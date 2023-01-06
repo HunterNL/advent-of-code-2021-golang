@@ -421,7 +421,7 @@ func digitSliceToInt(digits []int) int {
 	return out
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	sectionFile, err := os.ReadFile("./day24/input.txt")
 	if err != nil {
 		panic(err)
@@ -434,5 +434,5 @@ func Solve() (int, int) {
 	upper := bruteForce(steps, zStates, decrementNum, 9)
 	lower := bruteForce(steps, zStates, incrementNum, 1)
 
-	return upper, lower
+	return upper, lower, nil
 }

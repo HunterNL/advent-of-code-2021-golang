@@ -120,7 +120,7 @@ func lowestPoints(cavemap heightMap, xbound, ybound int) heightMap {
 	return ret
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	lines := file.ReadFile("./day9/input.txt")
 	cavemap, xbound, ybound := parseMap(lines)
 	points := lowestPoints(cavemap, xbound, ybound)
@@ -133,7 +133,7 @@ func Solve() (int, int) {
 	// log.Printf("Risk score: %v", part1)
 
 	// log.Printf("Top basins: %v", part2)
-	return part1, part2
+	return part1, part2, nil
 }
 
 func riskScore(points heightMap) int {

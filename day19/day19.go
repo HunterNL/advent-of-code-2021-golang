@@ -330,7 +330,7 @@ func findLargestDistance(scanners []scanner) int {
 	return maxDist
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day19/input.txt")
 	if err != nil {
 		panic(err)
@@ -347,6 +347,5 @@ func Solve() (int, int) {
 
 	log.Printf("Count: %v Max Distance: %v\n", count, dist)
 
-	return count, dist
-
+	return count, dist, nil
 }

@@ -32,11 +32,12 @@ import (
 	"time"
 )
 
-type dayFunc = func() (int, int)
+type dayFunc = func() (int, int, error)
 
 type dayResult struct {
 	part1 int
 	part2 int
+	err   error
 }
 
 func getDays() []dayFunc {
@@ -70,18 +71,6 @@ func getDays() []dayFunc {
 }
 
 func main() {
-	// solutionsFile, err := os.ReadFile("./solutions.json")
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-	//
-	// solutions, err := aoc.ParseSolutions(solutionsFile)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-
 	days := getDays()
 
 	output := []dayResult{}
@@ -91,18 +80,21 @@ func main() {
 
 	for _, dayFunc := range days {
 		start := time.Now()
-		part1, part2 := dayFunc()
+		part1, part2, err := dayFunc()
 
 		durations = append(durations, time.Since(start))
-		output = append(output, dayResult{part1, part2})
+		output = append(output, dayResult{part1, part2, err})
 	}
 
 	log.SetOutput(os.Stdout)
 
-	for i := range output {
-		// log.Printf("Day %v:\n\tPart 1:\t%v\n\tPart 2:\t%v\n", i+1, day.part1, day.part2)
-		log.Printf("Day %2v: %4v ms\n", i+1, int64(durations[i]/time.Millisecond))
+	for i, day := range output {
+		if day.err != nil {
+			log.Printf("Day %2v:        Error:%v\n", i, day.err)
+		} else {
+			log.Printf("Day %2v: %4v ms\n", i+1, int64(durations[i]/time.Millisecond))
+		}
+
 	}
 
-	// day25.Solve()
 }

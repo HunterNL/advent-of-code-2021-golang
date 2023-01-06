@@ -2,7 +2,10 @@ package main
 
 import (
 	"aoc2021/aoc"
+	"errors"
 	"fmt"
+	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"os"
@@ -35,7 +38,20 @@ func TestSolutions(t *testing.T) {
 				t.SkipNow()
 			}
 
-			part1, part2 := day()
+			log.SetOutput(io.Discard)
+			part1, part2, err := day()
+			log.SetOutput(os.Stdout)
+
+			if err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					t.Logf("Did not find input file for day %v\n", dayIndex+1)
+					t.SkipNow()
+				} else {
+					t.Log(err)
+					t.FailNow()
+				}
+
+			}
 
 			if part1 != solution.Part1 {
 				t.Errorf("Expected part1's solution to be %v instead of %v", solution.Part1, part1)

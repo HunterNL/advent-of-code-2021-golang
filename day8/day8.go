@@ -145,7 +145,7 @@ func SumLines(lines []string) int {
 
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	lines := file.ReadFile("./day8/input.txt")
 
 	digits := CountUniqueDigits(lines)
@@ -154,7 +154,7 @@ func Solve() (int, int) {
 
 	// log.Printf("Unique Digits: %v Output sum: %v", digits, sum)
 
-	return digits, sum
+	return digits, sum, nil
 }
 
 func findOneByLength(strs [][]rune, searchLen int) []rune {

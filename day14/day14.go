@@ -155,7 +155,7 @@ func smartStep(c *counts, rules *map[string]string, pairMap *map[string][2]strin
 	return newc
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	seed, rules := parseLines(file.ReadFile("./day14/input.txt"))
 
 	// for i := 0; i < 10; i++ {
@@ -196,5 +196,5 @@ func Solve() (int, int) {
 
 	log.Printf("Most common: %v least common: %v solution: %v\n", mostCommon2, leastCommon2, mostCommon2-leastCommon2)
 
-	return part1, mostCommon2 - leastCommon2
+	return part1, mostCommon2 - leastCommon2, nil
 }

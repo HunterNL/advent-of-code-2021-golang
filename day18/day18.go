@@ -289,7 +289,7 @@ func add(a, b string) string {
 	return "[" + a + "," + b + "]"
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	lines := file.ReadFile("./day18/input.txt")
 	total := sum(lines)
 	mag := magnitude(total)
@@ -312,5 +312,5 @@ func Solve() (int, int) {
 
 	log.Printf("Max magnitude: %v\n", max)
 
-	return mag, max
+	return mag, max, nil
 }

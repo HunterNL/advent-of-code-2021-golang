@@ -193,7 +193,7 @@ func part1(file []string) int {
 	return risk
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	file := file.ReadFile("./day15/input.txt")
 	g, rowSize, rowCount := parseGrid(file)
 	g2 := repeatRight(&g, rowSize)
@@ -210,7 +210,7 @@ func Solve() (int, int) {
 
 	log.Printf("Total risk: %v\n", risk)
 
-	return part1(file), risk
+	return part1(file), risk, nil
 }
 
 func inc(i, a uint8) uint8 {

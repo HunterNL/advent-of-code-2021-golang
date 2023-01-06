@@ -141,7 +141,7 @@ func toString(grid *[100]uint8) string {
 	return str
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	lines := file.ReadFile("./day11/input.txt")
 	grid := parseGrid(lines)
 
@@ -151,6 +151,6 @@ func Solve() (int, int) {
 
 	log.Printf("Flash count: %v sync step: %v", flashes, syncStep)
 
-	return flashes, syncStep
+	return flashes, syncStep, nil
 
 }

@@ -147,7 +147,7 @@ func intMax(a, b int) int {
 	}
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	p1Game := startGame(4, 2)
 	rolls := playGame(p1Game)
 
@@ -175,5 +175,5 @@ func Solve() (int, int) {
 		log.Printf("P2 wins\n")
 	}
 
-	return score, intMax(p1Wins, p2Wins)
+	return score, intMax(p1Wins, p2Wins), nil
 }

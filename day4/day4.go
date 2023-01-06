@@ -97,7 +97,7 @@ func parseBoard(str string) *board {
 	return board
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day4/input.txt")
 	if err != nil {
 		panic(err)
@@ -168,7 +168,7 @@ func Solve() (int, int) {
 	part1 := sumLowest * lowestBoard.hitNumber
 	part2 := sumHighest * highestBoard.hitNumber
 
-	return part1, part2
+	return part1, part2, nil
 
 }
 

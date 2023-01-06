@@ -510,7 +510,7 @@ type gameConfig struct {
 	winState board
 }
 
-func Solve() (int, int) {
+func Solve() (int, int, error) {
 	bytes, err := os.ReadFile("./day23/input.txt")
 	if err != nil {
 		panic(err)
@@ -522,7 +522,7 @@ func Solve() (int, int) {
 	scoreP1 := findQuickestMoves(boardP1, 2, desiredSmallBoard)
 	scoreP2 := findQuickestMoves(boardP2, 4, desiredLargeBoard)
 
-	return scoreP1, scoreP2
+	return scoreP1, scoreP2, nil
 }
 
 type gameSet []game
