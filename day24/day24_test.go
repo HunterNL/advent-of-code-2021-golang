@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -69,6 +70,60 @@ func TestMonad(t *testing.T) {
 	if a1[2] != 0 {
 		t.Error()
 	}
+}
+
+func intSlicesEqual(a, b []int) bool {
+	as := append([]int{}, a...)
+	bs := append([]int{}, b...)
+	sort.Ints(as)
+	sort.Ints(bs)
+
+	return reflect.DeepEqual(as, bs)
+}
+
+func TestBackTrace(t *testing.T) {
+	file, err := os.ReadFile("./input.txt")
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+	_, _, steps, _ := programs(file)
+
+	targetZ := 418
+
+	//Bruteforce valid solutions
+	a0 := alu{}
+
+	for stepId := 13; stepId >= 0; stepId-- {
+		step := steps[stepId]
+
+		bruteForcedStates := []int{}
+		for input := 1; input <= 9; input++ {
+			for zState := 0; zState < 11000; zState++ {
+
+				a0[2] = zState
+				a0.executeStep(step, input)
+				if a0[2] == targetZ {
+					// a0.reset()
+					// a0[2] = zState
+					// a0.executeStep(steps[13], input)
+					bruteForcedStates = append(bruteForcedStates, zState)
+				}
+				a0.reset()
+			}
+
+		}
+
+		calcedStates := findValidStartZStates(step, targetZ)
+
+		t.Log(calcedStates)
+
+		if !intSlicesEqual(bruteForcedStates, calcedStates) {
+			t.Logf("Failed on step %v\n", stepId)
+			t.FailNow()
+		}
+	}
+
 }
 
 func TestMonadInputs(t *testing.T) {
