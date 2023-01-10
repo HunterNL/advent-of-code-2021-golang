@@ -25,10 +25,10 @@ func TestMonad(t *testing.T) {
 	}
 	_, _, steps, _ := programs(file)
 
-	a1 := alu(0)
+	a1 := alu{state: 0}
 	a1.executeSteps(steps, sliceInt(13579246899999))
 
-	if int(a1) != 0 {
+	if a1.state != 0 {
 		t.Error()
 	}
 }
@@ -53,7 +53,7 @@ func TestBackTrace(t *testing.T) {
 	targetZ := 418
 
 	//Bruteforce valid solutions
-	a0 := alu(0)
+	a0 := alu{state: 0}
 
 	for stepId := 13; stepId >= 0; stepId-- {
 		step := steps[stepId]
@@ -62,9 +62,9 @@ func TestBackTrace(t *testing.T) {
 		for input := 1; input <= 9; input++ {
 			for zState := 0; zState < 11000; zState++ {
 
-				a0 = alu(zState)
+				a0.state = 0
 				a0.executeStep(step, input)
-				if int(a0) == targetZ {
+				if a0.state == targetZ {
 					// a0.reset()
 					// a0[2] = zState
 					// a0.executeStep(steps[13], input)
@@ -75,7 +75,11 @@ func TestBackTrace(t *testing.T) {
 
 		}
 
-		calcedStates := findValidStartZStates(step, targetZ, 11000)
+		var (
+			a = 0
+			b = 0
+		)
+		calcedStates := findValidStartZStates(step, targetZ, 11000, &a, &b)
 
 		t.Log(calcedStates)
 
@@ -96,7 +100,7 @@ func TestSections(t *testing.T) {
 	}
 	_, _, steps, _ := programs(file)
 
-	a := alu(0)
+	a := alu{0}
 
 	for i := 1; i <= 9; i++ {
 		for i2 := 1; i2 <= 9; i2++ {
@@ -126,11 +130,12 @@ func TestFinalSection(t *testing.T) {
 	}
 	_, _, steps, _ := programs(file)
 
+	a := alu{0}
 	for zState := 0; zState < 27; zState++ {
 		for i := 1; i <= 9; i++ {
-			a1 := alu(zState + 26)
-			a1.executeSteps(steps, []int{i})
-			log.Printf("ALU State for (I:%v Z:%v) %v\n", i, zState, a1)
+			a.state = zState + 26
+			a.executeSteps(steps, []int{i})
+			log.Printf("ALU State for (I:%v Z:%v) %v\n", i, zState, a.state)
 		}
 	}
 
