@@ -169,7 +169,6 @@ func findValidStartZStates(step sectionConfig, finalZState int, upperZLimit int,
 			} else {
 				// (*discardedStates)++
 			}
-			a.reset()
 		}
 	}
 
@@ -206,7 +205,7 @@ func incrementNum(nums []int, startIndex int) bool {
 }
 
 const numSize = 14
-const backTraceCount = 8
+const backTraceCount = 7
 const highestBacktraceSection = numSize - backTraceCount
 const leftSize = numSize - backTraceCount
 const rightSize = backTraceCount
