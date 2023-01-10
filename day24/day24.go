@@ -1,7 +1,6 @@
 package day24
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -10,17 +9,7 @@ import (
 	"strings"
 )
 
-var zGates = map[int]int{
-	7:  308915776,
-	8:  11881376,
-	9:  456976,
-	10: 456976,
-	11: 17576,
-	12: 676,
-	13: 26,
-}
-
-type alu [4]int
+type alu int
 
 func (a *alu) executeSteps(steps []sectionConfig, inputs []int) {
 	for i, section := range steps {
@@ -31,174 +20,21 @@ func (a *alu) executeStep(step sectionConfig, in int) {
 	sectionStep(a, step, in)
 }
 
-func (a *alu) executeInstructions(instructions []instruction, inputs []int) error {
-	ib := inputBuffer{inputs: inputs}
-
-	for _, instruction := range instructions {
-		_, isInput := instruction.(input)
-		if isInput && ib.done {
-			return errors.New("Input buffer exceeded")
-		}
-
-		instruction.execute(a, &ib)
-	}
-
-	return nil
-}
-
-func programs(file []byte) (wholeProgram []instruction, sections [][]instruction, steps []sectionConfig, err error) {
-	fileStr := strings.TrimSpace(string(file))
-
-	wholeProgram = parseInstructions(strings.Split(fileStr, "\n"))
-
+func programs(file []byte) (_, _, steps []sectionConfig, err error) {
 	strSections := strings.Split(strings.TrimSpace(string(file)), "inp w\n")[1:]
-	sections = [][]instruction{}
 	steps = []sectionConfig{}
 
 	for _, section := range strSections {
 		lines := strings.Split(strings.TrimSpace(section), "\n")
 		lines = append([]string{"inp w"}, lines...)
 		steps = append(steps, parseSectionConfig(lines))
-		sections = append(sections, parseInstructions(lines))
 	}
 
-	return wholeProgram, sections, steps, nil
+	return nil, nil, steps, nil
 }
 
 func (a *alu) reset() {
-	a[0] = 0
-	a[1] = 0
-	a[2] = 0
-	a[3] = 0
-}
-
-type inputBuffer struct {
-	currentIndex int
-	inputs       []int
-	done         bool
-}
-
-type operand interface {
-	getValue(a alu) int
-	getIndex() int
-}
-
-type literal int
-
-func (l literal) getValue(a alu) int {
-	return int(l)
-}
-func (l literal) getIndex() int {
-	return -1
-}
-
-type variable int
-
-func (i variable) getValue(a alu) int {
-	return a[i]
-}
-
-func (i variable) getIndex() int {
-	return int(i)
-}
-
-func (buffer *inputBuffer) readInt() int {
-	out := buffer.inputs[buffer.currentIndex]
-	buffer.currentIndex++
-
-	if buffer.currentIndex == len(buffer.inputs) {
-		buffer.done = true
-	}
-
-	return out
-}
-
-type instruction interface {
-	execute(a *alu, buffer *inputBuffer)
-}
-
-type input [1]operand
-type add [2]operand
-type mul [2]operand
-type div [2]operand
-type mod [2]operand
-type eql [2]operand
-
-func (i input) execute(a *alu, buffer *inputBuffer) {
-	(*a)[i[0].getIndex()] = buffer.readInt()
-}
-
-func (i add) execute(a *alu, buffer *inputBuffer) {
-	a[i[0].getIndex()] = i[0].getValue(*a) + i[1].getValue(*a)
-}
-func (i mul) execute(a *alu, buffer *inputBuffer) {
-	a[i[0].getIndex()] = i[0].getValue(*a) * i[1].getValue(*a)
-}
-func (i div) execute(a *alu, buffer *inputBuffer) {
-	a[i[0].getIndex()] = i[0].getValue(*a) / i[1].getValue(*a)
-}
-func (i mod) execute(a *alu, buffer *inputBuffer) {
-	a[i[0].getIndex()] = i[0].getValue(*a) % i[1].getValue(*a)
-}
-func (i eql) execute(a *alu, buffer *inputBuffer) {
-	if i[0].getValue(*a) == i[1].getValue(*a) {
-		a[i[0].getIndex()] = 1
-	} else {
-		a[i[0].getIndex()] = 0
-	}
-}
-
-var variableMap = map[string]int{
-	"x": 0,
-	"y": 1,
-	"z": 2,
-	"w": 3,
-}
-
-func strToOperand(str string) operand {
-	varIndex, found := variableMap[str]
-	if found {
-		return variable(varIndex)
-	} else {
-		i, err := strconv.Atoi(str)
-		if err != nil {
-			panic(err)
-		}
-		return literal(i)
-	}
-}
-
-func parseInstructions(str []string) []instruction {
-	out := make([]instruction, len(str))
-	for i, v := range str {
-		lineSplit := strings.Split(v, " ")
-
-		instructionName := lineSplit[0]
-
-		var op1 = strToOperand(lineSplit[1])
-		var op2 operand
-
-		if len(lineSplit) == 3 {
-			op2 = strToOperand(lineSplit[2])
-		}
-
-		switch instructionName {
-		case "inp":
-			out[i] = input{op1}
-		case "add":
-			out[i] = add{op1, op2}
-		case "mul":
-			out[i] = mul{op1, op2}
-		case "div":
-			out[i] = div{op1, op2}
-		case "mod":
-			out[i] = mod{op1, op2}
-		case "eql":
-			out[i] = eql{op1, op2}
-		}
-	}
-
-	return out
+	*a = 0
 }
 
 func sliceInt(in int) []int {
@@ -264,7 +100,7 @@ type sectionConfig struct {
 func sectionStep(a *alu, s sectionConfig, input int) {
 	x := 0
 	y := 0
-	z := a[2]
+	z := int(*a)
 	w := input
 
 	x = (z % 26) + s.xAdd // [0-25]+xAdd
@@ -284,13 +120,10 @@ func sectionStep(a *alu, s sectionConfig, input int) {
 	y = y * x      //[1-9]+yAdd|0
 	z = z + y      //((z*(1|26))/(1|26))-(0|[1-9]+yAdd)									//z|(z-[1-9]-yAdd)/26|(z-[1-9]-yAdd)*26+[1-25]				//z|z+[1-9]+yAdd
 
-	a[0] = x
-	a[1] = y
-	a[2] = z
-	a[3] = w
+	*a = alu(z)
 }
 
-func findValidStartZStates(step sectionConfig, finalZState int) []int {
+func findValidStartZStates(step sectionConfig, finalZState int, upperZLimit int) []int {
 	zStates := make(map[int]bool)
 
 	zStates[finalZState] = true
@@ -308,16 +141,19 @@ func findValidStartZStates(step sectionConfig, finalZState int) []int {
 		}
 	}
 
-	a := alu{}
+	a := alu(0)
 	out := []int{}
 	for k := range zStates {
 		if k < 0 {
 			continue
 		}
+		if k > upperZLimit {
+			continue
+		}
 		for i := 1; i <= 9; i++ {
-			a[2] = k
+			a = alu(k)
 			a.executeStep(step, i)
-			if a[2] == finalZState {
+			if int(a) == finalZState {
 				out = append(out, k)
 			}
 			a.reset()
@@ -357,7 +193,7 @@ func incrementNum(nums []int, startIndex int) bool {
 }
 
 const numSize = 14
-const backTraceCount = 7
+const backTraceCount = 8
 const highestBacktraceSection = numSize - backTraceCount
 const leftSize = numSize - backTraceCount
 const rightSize = backTraceCount
@@ -366,6 +202,12 @@ const rightSize = backTraceCount
 
 type zStateLookup map[int]map[int]bool
 
+func highestPossibleZStateAfterStep(initialZState int, step sectionConfig) int {
+	zState := initialZState / step.zDivStep
+	zState = zState * 26
+	return zState + 9 + step.yAdd
+}
+
 // Works backwards from the final step (where Z has to be 0) and bruteforces zValues in the previous step to see what zValues leads to succesfull zValues in the next step
 func findValidZStates(steps []sectionConfig) zStateLookup {
 	acceptedZExitState := make(zStateLookup)
@@ -373,6 +215,14 @@ func findValidZStates(steps []sectionConfig) zStateLookup {
 		acceptedZExitState[i] = map[int]bool{}
 	}
 
+	zCap := [14]int{}
+	lastCap := 0
+	for i := 0; i < len(zCap); i++ {
+		zCap[i] = highestPossibleZStateAfterStep(lastCap, steps[i])
+		lastCap = zCap[i]
+	}
+
+	// The state we're looking for, 0 after step 13
 	acceptedZExitState[13] = map[int]bool{0: true}
 
 	for sectionId := 13; sectionId >= highestBacktraceSection; sectionId-- {
@@ -380,7 +230,7 @@ func findValidZStates(steps []sectionConfig) zStateLookup {
 		validExitStates := acceptedZExitState[sectionId]
 
 		for k := range validExitStates {
-			for _, zState := range findValidStartZStates(step, k) {
+			for _, zState := range findValidStartZStates(step, k, zCap[sectionId]) {
 				acceptedZExitState[sectionId-1][zState] = true
 			}
 		}
@@ -396,7 +246,7 @@ func findValidZStates(steps []sectionConfig) zStateLookup {
 
 func bruteForce(steps []sectionConfig, validzSates zStateLookup, advanceFunc func([]int, int) bool, startDigit int) int {
 
-	leftALU := alu{}
+	leftALU := alu(0)
 	leftNum := createIntSlice(startDigit, leftSize)
 
 	log.Println("Left slice:", leftNum[:(leftSize-1)])
@@ -410,10 +260,10 @@ func bruteForce(steps []sectionConfig, validzSates zStateLookup, advanceFunc fun
 		leftALU.reset()
 		leftALU.executeSteps(steps[:leftSize], leftNum[:leftSize])
 
-		_, isValidZ := validzSates[highestBacktraceSection-1][leftALU[2]]
+		_, isValidZ := validzSates[highestBacktraceSection-1][int(leftALU)]
 
 		if isValidZ {
-			log.Println("Found valid starting digits!", leftNum, leftALU[2])
+			log.Println("Found valid starting digits!", leftNum, int(leftALU))
 			rightNum := createIntSlice(startDigit, backTraceCount)
 
 			for {
@@ -423,7 +273,7 @@ func bruteForce(steps []sectionConfig, validzSates zStateLookup, advanceFunc fun
 
 					rightALU.executeStep(steps[sectionId], rightNum[sectionId-leftSize])
 
-					if sectionId == 13 && rightALU[2] == 0 {
+					if sectionId == 13 && int(rightALU) == 0 {
 						log.Printf("Found result: %v %v", leftNum, rightNum)
 						return digitSliceToInt(append(leftNum[:], rightNum[:]...))
 					}
