@@ -3,6 +3,7 @@ package day15
 import (
 	"aoc2021/file"
 	"aoc2021/grid"
+	"aoc2021/pool"
 	"container/heap"
 	"log"
 	"strconv"
@@ -56,18 +57,19 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 	// openSet := make(map[int]node, len(*g))
 	openSet := make(nodeheap, 0, len(*g))
 	closedSet := make(map[int]node, len(*g))
+	nodePool := pool.MakePool[node](rowSize * rowCount)
 
 	heap.Init(&openSet)
 
 	targetX, targetY := grid.ToXY(end, rowSize)
 	currentX, currentY := grid.ToXY(start, rowSize)
 
-	current := node{
-		index:  start,
-		g:      0,
-		h:      grid.Manhatten(currentX, currentY, targetX, targetY),
-		parent: -1,
-	}
+	current := *nodePool.Pop()
+
+	current.index = start
+	current.g = 0
+	current.h = grid.Manhatten(currentX, currentY, targetX, targetY)
+	current.parent = -1
 	// currentBase := 0
 
 	// openSet[current.index] = current
@@ -95,17 +97,28 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 
 		neighbours := grid.ValidNeighbours(current.index, rowSize, rowCount)
 		for _, i := range neighbours {
-			_, found := closedSet[i]
+			var cost int = int((*g)[i]) * 1000
+			closedNode, found := closedSet[i]
 			if found {
+				if closedNode.g > current.g+cost {
+					closedNode.g = current.g + cost
+					closedNode.parent = current.index
+				}
 				continue
 			}
+
 			x, y := grid.ToXY(i, rowSize)
-			var cost int = int((*g)[i]) * 1000
 			var dist = grid.Manhatten(x, y, targetX, targetY)
 
 			if i == end {
 				done = true
-				closedSet[i] = node{g: current.g + cost, h: dist, index: i, parent: current.index}
+				n := *nodePool.Pop()
+				n.g = current.g + cost
+				n.h = dist
+				n.index = i
+				n.parent = current.index
+				closedSet[i] = n
+				// closedSet[i] = node{g: current.g + cost, h: dist, index: i, parent: current.index}
 				break
 			}
 
@@ -128,7 +141,14 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 				heap.Fix(&openSet, heapIndex)
 			} else {
 				// log.Printf("Adding node %v\n", i)
-				heap.Push(&openSet, node{g: current.g + cost, h: dist, index: i, parent: current.index})
+				n := *nodePool.Pop()
+				n.g = current.g + cost
+				n.h = dist
+				n.index = i
+				n.parent = current.index
+				closedSet[i] = n
+				heap.Push(&openSet, n)
+				// heap.Push(&openSet, node{g: current.g + cost, h: dist, index: i, parent: current.index})
 			}
 
 			// log.Printf("Distance to target from %v %v: %v\n", x, y, dist)
