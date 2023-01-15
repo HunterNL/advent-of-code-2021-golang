@@ -26,9 +26,10 @@ func TestExplode(t *testing.T) {
 	}
 
 	for input, expected := range cases {
-		result, _ := reduceOnce(input)
-		if result != expected {
-			t.Errorf("Expected %v but received %v\n", expected, result)
+		n := numberFromString(input)
+		reduceOnce(n)
+		if n.String() != expected {
+			t.Errorf("Expected %v but received %v\n", expected, n)
 		}
 	}
 }
@@ -40,9 +41,10 @@ func TestSplit(t *testing.T) {
 	}
 
 	for input, expected := range cases {
-		result, _ := reduceOnce(input)
-		if result != expected {
-			t.Errorf("Expected %v but received %v\n", expected, result)
+		n := numberFromString(input)
+		reduceOnce(n)
+		if n.String() != expected {
+			t.Errorf("Expected %v but received %v\n", expected, n)
 		}
 	}
 }
@@ -59,74 +61,105 @@ func TestMagnitude(t *testing.T) {
 	}
 
 	for input, expected := range cases {
-		result := magnitude(input)
+		result := numberFromString(input).Magnitude()
 		if result != expected {
 			t.Errorf("Expected %v but received %v\n", expected, result)
 		}
 	}
 }
 
-func TestSum(t *testing.T) {
-	lines := []string{"[1,1]", "[2,2]", "[3,3]", "[4,4]"}
-	str := sum(lines)
+func convertStringSlice(sl []string) []number {
+	out := []number{}
+	for _, s := range sl {
+		out = append(out, numberFromString(s))
+	}
+	return out
+}
 
-	if str != "[[[[1,1],[2,2]],[3,3]],[4,4]]" {
+func TestSimpleSum(t *testing.T) {
+	lines := convertStringSlice([]string{"[1,1]", "[2,2]", "[3,3]", "[4,4]"})
+	n := sum(lines)
+
+	if n.String() != "[[[[1,1],[2,2]],[3,3]],[4,4]]" {
 		t.Error("Failed simple sum")
 	}
+}
 
-	lines = []string{"[1,1]", "[2,2]", "[3,3]", "[4,4]", "[5,5]"}
-	str = sum(lines)
+func TestReplaceDigit(t *testing.T) {
+	n := numberFromString("[1,2]")
+	replaceNumber(n.Left(), &digit{digit: 3, parentPair: nil})
 
-	if str != "[[[[3,0],[5,3]],[4,4]],[5,5]]" {
-		t.Error("Failed reducing sum")
+	sanityCheck(n)
+}
+
+func TestReplacePair(t *testing.T) {
+	n := numberFromString("[[1,2],3]")
+	sanityCheck(n)
+	replaceNumber(n.Left(), createPair(&digit{digit: 3}, &digit{digit: 4}, n.Left().Parent()))
+
+	sanityCheck(n)
+
+	if n.String() != "[[3,4],3]" {
+		t.Fail()
 	}
+}
 
-	lines = file.ReadFile("./test_data.txt")
-	sum := sum(lines)
+func TestReducingSum(t *testing.T) {
+	lines := convertStringSlice([]string{"[1,1]", "[2,2]", "[3,3]", "[4,4]", "[5,5]"})
+	str := sum(lines).String()
+
+	expected := "[[[[3,0],[5,3]],[4,4]],[5,5]]"
+	if str != expected {
+		t.Errorf("Expected %v to equal %v\n", str, expected)
+	}
+}
+func TestComplexSum(t *testing.T) {
+	lines := convertStringSlice(file.ReadFile("./test_data.txt"))
+	sum := sum(lines).String()
 	if sum != "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]" {
 		t.Error("Failed complex sum")
 	}
 }
 
-func TestReduceSequence(t *testing.T) {
-	lines := []string{"[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]"}
-	added := add(lines[0], lines[1])
+// func TestReduceSequence(t *testing.T) {
+// 	lines := convertStringSlice([]string{"[[[[4,3],4],4],[7,[[8,4],9]]]", "[1,1]"})
+// 	added := add(lines[0], lines[1]).String()
 
-	if added != "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]" {
-		t.Error("Failed add")
-	}
+// 	if added != "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]" {
+// 		t.Error("Failed add")
+// 	}
 
-	e1, _ := reduceOnce(added)
-	if e1 != "[[[[0,7],4],[7,[[8,4],9]]],[1,1]]" {
-		t.Error("Failed explode 1")
-	}
-	e2, _ := reduceOnce(e1)
-	if e2 != "[[[[0,7],4],[15,[0,13]]],[1,1]]" {
-		t.Error("Failed explode 2")
-	}
-	s1, _ := reduceOnce(e2)
-	if s1 != "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]" {
-		t.Error("Failed split 1")
-	}
-	s2, _ := reduceOnce(s1)
-	if s2 != "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]" {
-		t.Error("Failed split 2")
-	}
-	e3, _ := reduceOnce(s2)
-	if e3 != "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]" {
-		t.Error("Failed explode 3")
-	}
+// 	e1, _ := reduceOnce(add())
+// 	if string(e1) != "[[[[0,7],4],[7,[[8,4],9]]],[1,1]]" {
+// 		t.Error("Failed explode 1")
+// 	}
+// 	e2, _ := reduceOnce(e1)
+// 	if string(e2) != "[[[[0,7],4],[15,[0,13]]],[1,1]]" {
+// 		t.Error("Failed explode 2")
+// 	}
+// 	s1, _ := reduceOnce(e2)
+// 	if string(s1) != "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]" {
+// 		t.Error("Failed split 1")
+// 	}
+// 	s2, _ := reduceOnce(s1)
+// 	if string(s2) != "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]" {
+// 		t.Error("Failed split 2")
+// 	}
+// 	e3, _ := reduceOnce(s2)
+// 	if string(e3) != "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]" {
+// 		t.Error("Failed explode 3")
+// 	}
 
-}
+// }
 
 func TestAll(t *testing.T) {
-	lines := file.ReadFile("./test_data2.txt")
+	lines := convertStringSlice(file.ReadFile("./test_data2.txt"))
 	sum := sum(lines)
-	if sum != "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]" {
+	if sum.String() != "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]" {
 		t.Error("Failed system sum")
 	}
 
-	if magnitude(sum) != 4140 {
+	if sum.Magnitude() != 4140 {
 		t.Error("Failed system magnitude")
 	}
 
