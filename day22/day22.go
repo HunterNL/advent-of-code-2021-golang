@@ -243,16 +243,14 @@ func Solve() (int, int, error) {
 
 	instructions := parseInstructions(string(bytes))
 
-	p1r := vector3DReactor{}
-	for _, step := range instructions {
-		p1r.applyStep(step)
-	}
-
-	p1 := p1r.countOn()
-
+	p1 := 0
 	r := cuboidReactor{}
+
 	for i, step := range instructions {
 		r.applyStep(step)
+		if i == 19 {
+			p1 = r.countOn()
+		}
 		log.Printf("Step %v, reactor size: %v\n", i, len(r))
 	}
 
