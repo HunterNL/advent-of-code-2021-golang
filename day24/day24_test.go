@@ -75,15 +75,17 @@ func TestBackTrace(t *testing.T) {
 
 		}
 
-		var (
-			a = 0
-			b = 0
-		)
-		calcedStates := findValidStartZStates(step, targetZ, 11000, &a, &b)
+		calcedStates := findValidStartZStates(step, targetZ, 11000, &stats{})
+
+		statesAsIntSlice := []int{}
+
+		for _, z := range calcedStates {
+			statesAsIntSlice = append(statesAsIntSlice, z.state)
+		}
 
 		t.Log(calcedStates)
 
-		if !intSlicesEqual(bruteForcedStates, calcedStates) {
+		if !intSlicesEqual(bruteForcedStates, statesAsIntSlice) {
 			t.Logf("Failed on step %v\n", stepId)
 			t.FailNow()
 		}

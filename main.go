@@ -26,7 +26,7 @@ import (
 	"aoc2021/day7"
 	"aoc2021/day8"
 	"aoc2021/day9"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -79,7 +79,7 @@ func main() {
 	// day24.Solve()
 	// return
 
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 
 	for _, dayFunc := range days {
 		start := time.Now()
@@ -91,7 +91,9 @@ func main() {
 
 	log.SetOutput(os.Stdout)
 
+	var totalDuration int64 = 0
 	for i, day := range output {
+		totalDuration += int64(durations[i])
 		if day.err != nil {
 			log.Printf("Day %2v:        Error:%v\n", i, day.err)
 		} else {
@@ -99,5 +101,7 @@ func main() {
 		}
 
 	}
+
+	log.Printf("Total duration: %vms\n", totalDuration/int64(time.Millisecond))
 
 }
