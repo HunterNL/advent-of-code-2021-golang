@@ -50,7 +50,8 @@ func TestBackTrace(t *testing.T) {
 	}
 	_, _, steps, _ := programs(file)
 
-	targetZ := 418
+	targetZ := 0
+	zCap := 22000
 
 	//Bruteforce valid solutions
 	a0 := alu{state: 0}
@@ -60,32 +61,33 @@ func TestBackTrace(t *testing.T) {
 
 		bruteForcedStates := []int{}
 		for input := 1; input <= 9; input++ {
-			for zState := 0; zState < 11000; zState++ {
+			for zState := 0; zState < zCap; zState++ {
 
-				a0.state = 0
+				a0.state = zState
 				a0.executeStep(step, input)
 				if a0.state == targetZ {
-					// a0.reset()
-					// a0[2] = zState
-					// a0.executeStep(steps[13], input)
 					bruteForcedStates = append(bruteForcedStates, zState)
+					t.Logf("input %v brings %v to %v\n", input, zState, targetZ)
 				}
 				a0.reset()
 			}
 
 		}
 
-		calcedStates := findValidStartZStates(step, targetZ, 11000, &stats{})
+		calcedStates := findValidStartZStates(step, targetZ, zCap)
 
-		statesAsIntSlice := []int{}
+		calculatedIntsAsSlice := []int{}
 
 		for _, z := range calcedStates {
-			statesAsIntSlice = append(statesAsIntSlice, z.state)
+			calculatedIntsAsSlice = append(calculatedIntsAsSlice, z.state)
 		}
 
 		t.Log(calcedStates)
 
-		if !intSlicesEqual(bruteForcedStates, statesAsIntSlice) {
+		if !intSlicesEqual(bruteForcedStates, calculatedIntsAsSlice) {
+			sort.Ints(bruteForcedStates)
+			sort.Ints(calculatedIntsAsSlice)
+
 			t.Logf("Failed on step %v\n", stepId)
 			t.FailNow()
 		}
@@ -143,35 +145,3 @@ func TestFinalSection(t *testing.T) {
 
 	t.Fail()
 }
-
-// func TestBackTraceParity(t *testing.T) {
-// 	file, err := os.ReadFile("./input.txt")
-// 	if err != nil {
-// 		t.Log(err)
-// 		t.FailNow()
-// 	}
-// 	_, _, steps, _ := programs(file)
-
-// 	zStateCalc := [14][]int{}
-// 	zStateCalc[13] = []int{0}
-
-// 	bruteForcedZStates := findValidZStates(steps)
-
-// 	for i := 13; i > 7; i-- {
-// 		step := steps[i]
-// 		currentTargets := zStateCalc[i]
-// 		out := make(map[int]int)
-
-// 		for _, target := range currentTargets {
-// 			for _, z := range reverseStep(step, target) {
-// 				out[z] = 1
-
-// 				_, found := bruteForcedZStates[i-1][z]
-// 				if !found {
-// 					panic("Found solution not in bruteforce list")
-// 				}
-// 			}
-// 		}
-
-// 	}
-// }
