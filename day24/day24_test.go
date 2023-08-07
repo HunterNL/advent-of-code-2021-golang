@@ -143,3 +143,35 @@ func TestFinalSection(t *testing.T) {
 
 	t.Fail()
 }
+
+// func TestBackTraceParity(t *testing.T) {
+// 	file, err := os.ReadFile("./input.txt")
+// 	if err != nil {
+// 		t.Log(err)
+// 		t.FailNow()
+// 	}
+// 	_, _, steps, _ := programs(file)
+
+// 	zStateCalc := [14][]int{}
+// 	zStateCalc[13] = []int{0}
+
+// 	bruteForcedZStates := findValidZStates(steps)
+
+// 	for i := 13; i > 7; i-- {
+// 		step := steps[i]
+// 		currentTargets := zStateCalc[i]
+// 		out := make(map[int]int)
+
+// 		for _, target := range currentTargets {
+// 			for _, z := range reverseStep(step, target) {
+// 				out[z] = 1
+
+// 				_, found := bruteForcedZStates[i-1][z]
+// 				if !found {
+// 					panic("Found solution not in bruteforce list")
+// 				}
+// 			}
+// 		}
+
+// 	}
+// }

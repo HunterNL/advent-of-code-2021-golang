@@ -92,15 +92,58 @@ func parseSectionConfig(lines []string) sectionConfig {
 
 }
 
+type zState struct {
+	state        int
+	forwardInput int
+}
+
+func explain(l *log.Logger, s sectionConfig, fromZ, toZ, input int) {
+	if s.zDivStep > 1 {
+		l.Printf("%5v reaches %5v by being divided by %2v,", fromZ, fromZ/s.zDivStep, s.zDivStep)
+	}
+
+	z := fromZ / s.zDivStep
+
+	// l.Printf("%5v reaches %5v by being divided by %2v,", fromZ, toZ, s.zDivStep)
+
+	var x = (z % 26) + s.xAdd // [0-25]+xAdd
+	var y = 25
+
+	if x == input { //   [1-9]
+		l.Println("X == input")
+		x = 0
+		y = 0
+	} else {
+		l.Println("X != input")
+		x = 1
+	}
+
+	//x : 1|0
+	y++       //1|26
+	z = z * y //z|z/26|z*26+[1-25]
+	l.Printf("%v is then multiplied by %v to reach %v\n", fromZ/s.zDivStep, y, z)
+
+	y = input + s.yAdd //[1-9]+yAdd
+
+	l.Printf("Y = %2v since y=y*(%v+%v)\n", y, input, s.yAdd)
+	y = y * x //[1-9]+yAdd|0
+	z = z + y //((z*(1|26))/(1|26))-(0|[1-9]+yAdd)
+
+	l.Printf("Y (%2v) is added to make %v\n", y, z) //z|(z-[1-9]-yAdd)/26|(z-[1-9]-yAdd)*26+[1-25]				//z|z+[1-9]+yAdd
+
+	// l.Printf("It is then multiplied by %v to reach %v\n", y, z*y)
+
+	if toZ != z {
+		l.Printf("Huh, %v is not the expected %v\n", z, toZ)
+	}
+
+	l.Println(strings.Repeat("=", 80))
+}
+
 type sectionConfig struct {
 	zDivStep int
 	xAdd     int
 	yAdd     int
-}
-
-type zState struct {
-	state        int
-	forwardInput int
 }
 
 // Replicates what the ALU is doing, any step-to-step changes in the original input are input here area sectionConfig
@@ -111,18 +154,20 @@ func sectionStep(a *alu, s sectionConfig, input int) {
 	w := input
 
 	x = (z % 26) + s.xAdd // [0-25]+xAdd
-	z = z / s.zDivStep    // z | z*26+[1-25]
-	y = 25
+
 	if x == w { //   [1-9]
 		x = 0
 		y = 0
 	} else {
 		x = 1
+		y = 25
 	}
 
 	//x : 1|0
-	y++            //1|26
-	z = z * y      //z|z/26|z*26+[1-25]
+	y++                //1|26
+	z = z / s.zDivStep // z | z*26+[1-25]
+	z = z * y          //z|z/26|z*26+[1-25]
+
 	y = w + s.yAdd //[1-9]+yAdd
 	y = y * x      //[1-9]+yAdd|0
 	z = z + y      //((z*(1|26))/(1|26))-(0|[1-9]+yAdd)									//z|(z-[1-9]-yAdd)/26|(z-[1-9]-yAdd)*26+[1-25]				//z|z+[1-9]+yAdd
@@ -130,30 +175,88 @@ func sectionStep(a *alu, s sectionConfig, input int) {
 	a.state = z
 }
 
+func reverseStep(step sectionConfig, finalZ int) []zState {
+	out := []zState{}
+
+	// Tackling the x == w branch first
+	// Thus x = 0, y = 1
+	zTrue := finalZ * step.zDivStep
+	for div := 0; div < step.zDivStep; div++ {
+		zTrueDiv := zTrue + div
+
+		zTrueMod := (zTrueDiv % 26) + step.xAdd
+		if zTrueMod >= 1 && zTrueMod <= 9 {
+			out = append(out, zState{state: zTrueDiv, forwardInput: zTrueMod})
+		}
+	}
+
+	// And now the x != w branch
+	// Here x = 1 and y=25
+	for input := 1; input <= 9; input++ {
+		y := input + step.yAdd
+		zFalse := finalZ - y
+
+		// Must cleanly divide by 26
+		if zFalse%26 != 0 {
+			continue
+		}
+
+		zFalse = zFalse / 26
+
+		zFalse = zFalse * step.zDivStep
+
+		for div := 0; div < step.zDivStep; div++ {
+			zFalseDiv := zFalse + div //  eg 6/4 and 7/4 would result in the same, gotta attempt multiple origin values
+
+			zFalseDiv = zFalseDiv * step.zDivStep
+
+			zFalseMod := (zFalseDiv % 26) + step.xAdd
+			if zFalseMod != input {
+				out = append(out, zState{state: zFalseDiv, forwardInput: input})
+			}
+		}
+
+	}
+
+	return out
+}
+
 func findValidStartZStates(step sectionConfig, finalZState int, upperZLimit int, s *stats) []zState {
-	zStates := make(map[int]bool)
+	zStates := []zState{}
+
+	inputZs := reverseStep(step, finalZState)
+	for _, in := range inputZs {
+		if in.state > upperZLimit {
+			continue
+		}
+
+		zStates = append(zStates, in)
+
+	}
+
+	return zStates
 
 	// zStates[finalZState] = true
 
-	for input := 1; input <= 9; input++ {
-		for i := 1; i <= step.zDivStep; i++ {
-			z := finalZState
-			y := input + step.yAdd
-			// zets := [2]int{z, z - y, (z - y) / 26}
+	// for input := 1; input <= 9; input++ {
+	// 	for i := 1; i <= step.zDivStep; i++ {
+	// 		z := finalZState
+	// 		y := input + step.yAdd
+	// 		// zets := [2]int{z, z - y, (z - y) / 26}
 
-			zPure := z            // x == w
-			zMult := (z - y) / 26 // x != w
+	// 		zPure := z            // x == w
+	// 		zMult := (z - y) / 26 // x != w
 
-			if (zPure*step.zDivStep+i)%26+step.xAdd == input {
-				zStates[zPure*step.zDivStep+i] = true
-			}
+	// 		if (zPure*step.zDivStep+i)%26+step.xAdd == input {
+	// 			zStates[zPure*step.zDivStep+i] = true
+	// 		}
 
-			if (zMult*step.zDivStep+i)%26+step.xAdd != input {
-				zStates[zMult*step.zDivStep+i] = true
-			}
+	// 		if (zMult*step.zDivStep+i)%26+step.xAdd != input {
+	// 			zStates[zMult*step.zDivStep+i] = true
+	// 		}
 
-		}
-	}
+	// 	}
+	// }
 
 	a := alu{state: 0}
 	out := []zState{}
@@ -177,7 +280,10 @@ func findValidStartZStates(step sectionConfig, finalZState int, upperZLimit int,
 		}
 	}
 
-	// log.Printf("Output state %6v has %6v possible input states: %v\n", finalZState, len(out), out)
+	log.Printf("Output state %6v has %6v possible input states: %v\n", finalZState, len(out), out)
+	if len(out) == 1 {
+		explain(log.Default(), step, out[0].state, finalZState, out[0].forwardInput)
+	}
 
 	return out
 }
@@ -210,7 +316,7 @@ func incrementNum(nums []int, startIndex int) bool {
 }
 
 const numSize = 14
-const backTraceCount = 7
+const backTraceCount = 8
 const highestBacktraceSection = numSize - backTraceCount
 const leftSize = numSize - backTraceCount
 const rightSize = backTraceCount
@@ -282,12 +388,13 @@ func findValidZStates(steps []sectionConfig) zStateLookup {
 			}
 		}
 
-		// log.Printf("Found %v valid exit states for section %vn", len(acceptedZExitState[sectionId-1]), sectionId-1)
-		// log.Printf("Found a total of %10.v valid zStates (+inputs) before discarding %10v (%2.2f%%)\n", s.found, s.discarded, (float32(s.discarded)/float32(s.found))*100.0)
+		//// log.Printf("Found %v valid exit states for section %vn", len(acceptedZExitState[sectionId-1]), sectionId-1)
+
+		//// log.Printf("Found a total of %10.v valid zStates (+inputs) before discarding %10v (%2.2f%%)\n", s.found, s.discarded, (float32(s.discarded)/float32(s.found))*100.0)
 
 	}
 
-	log.Print(len(acceptedZExitState[highestBacktraceSection-1]))
+	// log.Print(len(acceptedZExitState[highestBacktraceSection-1]))
 
 	return acceptedZExitState
 }
@@ -373,6 +480,9 @@ func Solve() (int, int, error) {
 
 	// Calculate z targets, valid for both attempts
 	zStates := findValidZStates(steps)
+
+	// fmt.Println(zStates[12])
+	// fmt.Println(reverseStep(steps[13], 0))
 
 	upper := bruteForce(steps, zStates, decrementNum, sliceMax, 9)
 	lower := bruteForce(steps, zStates, incrementNum, sliceMin, 1)
