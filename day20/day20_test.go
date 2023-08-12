@@ -47,7 +47,7 @@ func TestBoolsToNum(t *testing.T) {
 
 	tests := []struct {
 		input    [9]bool
-		expected int
+		expected uint16
 	}{
 		{
 			input:    [9]bool{false, false, false, false, false, false, false, false, false},

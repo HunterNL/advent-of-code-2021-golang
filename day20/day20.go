@@ -11,10 +11,6 @@ import (
 const PIXEL_LIT = '#'
 const PIXEL_DIM = '.'
 
-type vec2 struct {
-	x, y int
-}
-
 type image struct {
 	pixels []uint64
 	size   int
@@ -59,12 +55,6 @@ func (enhancer *imageEnhancer) enhanceImage() error {
 
 	return nil
 }
-
-// // 1 side of the input rectangle
-// const INPUT_SIZE = 100
-// const ITERATION_COUNT = 50
-// const FINAL_SIZE = INPUT_SIZE + (ITERATION_COUNT * 2) // Each iterations grows on both sides
-// const OFFSET = FINAL_SIZE/2 - INPUT_SIZE/2
 
 func newImage(size int) image {
 	return image{
@@ -258,16 +248,15 @@ func (b bounds) inBounds(x, y int) bool {
 // 	return b
 // }
 
-func boolsToNum(b [9]bool) int {
-	out := 0
+func boolsToNum(b [9]bool) (out uint16) {
 	for i := 0; i < 9; i++ {
-		n := 0
+		var n uint16 = 0
 
 		if b[i] {
 			n = 1
 		}
 		out = out << 1
-		out = out + n
+		out = out | n
 	}
 	return out
 }
@@ -328,18 +317,20 @@ func enhanceImage(in image, algorithm string, oobState bool, iteration uint8, b 
 func enhanceSinglePixel(x, y int, algorithm string, img image, oobState bool, bitMask uint64, b bounds) bool {
 	var numBits [9]bool
 	var boolState bool
-	var pixelPosition = x + y*img.size
-	for boolIndex, pixelIndex := range pixelNeighbours(pixelPosition, img.size) {
-		px := pixelIndex % img.size
-		py := pixelIndex / img.size
-		if !b.inBounds(px, py) {
-			boolState = oobState
-		} else {
-			neighbourState := img.pixels[pixelIndex]
-			boolState = ((neighbourState & bitMask) > 0)
-		}
+	for offsetY := -1; offsetY <= 1; offsetY++ {
+		sampleY := y + offsetY
+		for offsetX := -1; offsetX <= 1; offsetX++ {
+			samplyX := x + offsetX
 
-		numBits[boolIndex] = boolState
+			if !b.inBounds(samplyX, sampleY) {
+				boolState = oobState
+			} else {
+				neighbourState := img.pixels[samplyX+sampleY*img.size]
+				boolState = ((neighbourState & bitMask) > 0)
+			}
+
+			numBits[(offsetX+1)+((offsetY+1)*3)] = boolState
+		}
 	}
 	algIndex := boolsToNum(numBits)
 	return algorithm[algIndex] == '#'
