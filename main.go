@@ -76,9 +76,6 @@ func main() {
 	output := []dayResult{}
 	durations := []time.Duration{}
 
-	// day24.Solve()
-	// return
-
 	log.SetOutput(io.Discard)
 
 	for _, dayFunc := range days {
