@@ -5,8 +5,8 @@ type pool[T any] struct {
 	nextIndex int
 }
 
-func MakePool[T any](count int) pool[T] {
-	return pool[T]{
+func MakePool[T any](count int) *pool[T] {
+	return &pool[T]{
 		objects:   make([]T, count),
 		nextIndex: 0,
 	}

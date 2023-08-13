@@ -13,7 +13,7 @@ func TestFindPath(t *testing.T) {
 	g, rowSize, rowCount := parseGrid(file)
 
 	risk := 0
-	path := findPath(&g, rowSize, rowCount, 0, 99)
+	path := findPath(g, rowSize, rowCount, 0, 99)
 
 	for _, i := range path {
 		x, y := grid.ToXY(i, rowSize)

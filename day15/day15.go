@@ -16,13 +16,20 @@ type node struct {
 	index     int
 	parent    int
 	heapIndex int
+	x         int
+	y         int
+}
+
+type vec2 struct {
+	x int
+	y int
 }
 
 type nodeheap []node
 
 // Len is the number of elements in the collection.
-func (nh *nodeheap) Len() int {
-	return len(*nh) // TODO: Implement
+func (nh nodeheap) Len() int {
+	return len(nh) // TODO: Implement
 }
 
 func (nh nodeheap) Less(i int, j int) bool {
@@ -53,10 +60,52 @@ func (nh *nodeheap) Pop() interface{} {
 	return item
 }
 
-func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
+func intMin(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func intMax(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func validNeighbours(x, y, rowSize, rowCount int) [4]vec2 {
+	neighbours := [4]vec2{}
+
+	top := y > 0
+	bottom := y < rowCount-1
+
+	left := x > 0
+	right := x < rowSize-1
+
+	if top {
+		neighbours[0] = vec2{x, y - 1}
+	}
+
+	if left {
+		neighbours[1] = vec2{x - 1, y}
+	}
+
+	if right {
+		neighbours[2] = vec2{x + 1, y}
+	}
+
+	if bottom {
+		neighbours[3] = vec2{x, y + 1}
+	}
+
+	return neighbours
+}
+
+func findPath(g []uint8, rowSize, rowCount, start, end int) []int {
 	// openSet := make(map[int]node, len(*g))
-	openSet := make(nodeheap, 0, len(*g))
-	closedSet := make(map[int]node, len(*g))
+	openSet := make(nodeheap, 0, len(g))
+	closedSet := make(map[int]node, len(g))
 	nodePool := pool.MakePool[node](rowSize * rowCount)
 
 	heap.Init(&openSet)
@@ -70,6 +119,8 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 	current.g = 0
 	current.h = grid.Manhatten(currentX, currentY, targetX, targetY)
 	current.parent = -1
+	current.x = 0
+	current.y = 0
 	// currentBase := 0
 
 	// openSet[current.index] = current
@@ -78,27 +129,25 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 	done := false
 
 	for !done {
-		// lowestScore := math.MaxInt
-		// var lowestIndex int
-		// for i, n := range openSet {
-		// 	f := n.g + n.h
-		// 	if f < lowestScore {
-		// 		lowestScore = f
-		// 		current = n
-		// 		lowestIndex = i
-		// 	}
-		// }
-		p := heap.Pop(&openSet)
-		current = p.(node)
-
-		// log.Printf("Removed %v from open set\n", current.index)
-		// delete(openSet, lowestIndex)
+		//Grab a new node
+		pop := heap.Pop(&openSet)
+		current = pop.(node)
 		closedSet[current.index] = current
 
-		neighbours := grid.ValidNeighbours(current.index, rowSize, rowCount)
+		x := current.x
+		y := current.y
+
+		// Get all possible paths forward
+		neighbours := validNeighbours(x, y, rowSize, rowCount)
 		for _, i := range neighbours {
-			var cost int = int((*g)[i]) * 1000
-			closedNode, found := closedSet[i]
+			neighbourGridIndex := i.x + i.y*rowSize
+			neighbourX := i.x
+			neighbourY := i.y
+
+			var cost int = int(g[neighbourGridIndex]) * 1000
+
+			// If it's in the closed set, update it's costs and continue
+			closedNode, found := closedSet[neighbourGridIndex]
 			if found {
 				if closedNode.g > current.g+cost {
 					closedNode.g = current.g + cost
@@ -107,55 +156,41 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 				continue
 			}
 
-			x, y := grid.ToXY(i, rowSize)
-			var dist = grid.Manhatten(x, y, targetX, targetY)
+			var dist = grid.Manhatten(neighbourX, neighbourY, targetX, targetY)
 
-			if i == end {
+			// If we've reached the end: wrap up
+			if neighbourGridIndex == end {
 				done = true
 				n := *nodePool.Pop()
 				n.g = current.g + cost
 				n.h = dist
-				n.index = i
+				n.index = neighbourGridIndex
 				n.parent = current.index
-				closedSet[i] = n
-				// closedSet[i] = node{g: current.g + cost, h: dist, index: i, parent: current.index}
+				closedSet[neighbourGridIndex] = n
 				break
 			}
 
-			heapIndex := -1
-			for _, n := range openSet {
-				if n.index == i {
-					heapIndex = n.heapIndex
-					break
-				}
-			}
+			// Why the heck is this here?
+			// heapIndex := -1
+			// for _, n := range openSet {
+			// 	if n.index == neighbourGridIndex {
+			// 		heapIndex = n.heapIndex
+			// 		break
+			// 	}
+			// }
 
-			if heapIndex > -1 {
-				// log.Printf("Fixing node %v\n", openSet[heapIndex].index)
-				if openSet[heapIndex].g > current.g+cost {
-					n2 := openSet[i]
-					n2.g = current.g + cost
-					n2.parent = current.index
-					openSet[i] = n2
-				}
-				heap.Fix(&openSet, heapIndex)
-			} else {
-				// log.Printf("Adding node %v\n", i)
-				n := *nodePool.Pop()
-				n.g = current.g + cost
-				n.h = dist
-				n.index = i
-				n.parent = current.index
-				closedSet[i] = n
-				heap.Push(&openSet, n)
-				// heap.Push(&openSet, node{g: current.g + cost, h: dist, index: i, parent: current.index})
-			}
-
-			// log.Printf("Distance to target from %v %v: %v\n", x, y, dist)
+			// Insert new path into the open set
+			n := *nodePool.Pop()
+			n.g = current.g + cost
+			n.h = dist
+			n.x = neighbourX
+			n.y = neighbourY
+			n.index = neighbourGridIndex
+			n.parent = current.index
+			closedSet[neighbourGridIndex] = n
+			heap.Push(&openSet, n)
 
 		}
-
-		// log.Printf("Open set size: %v closed set size: %v\n", len(openSet), len(closedSet))
 	}
 
 	// Convert closed set to ordered list
@@ -167,12 +202,9 @@ func findPath(g *[]uint8, rowSize, rowCount, start, end int) []int {
 		i = n.parent
 	}
 
-	// log.Printf("Path: %v\n", closedSet)
-	// log.Printf("Out: %v\n", out)
-
-	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
-		out[i], out[j] = out[j], out[i]
-	}
+	// for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+	// 	out[i], out[j] = out[j], out[i]
+	// }
 
 	return out
 }
@@ -202,7 +234,7 @@ func part1(file []string) int {
 	g, rowSize, rowCount := parseGrid(file)
 
 	risk := 0
-	path := findPath(&g, rowSize, rowCount, 0, rowSize*rowCount-1)
+	path := findPath(g, rowSize, rowCount, 0, rowSize*rowCount-1)
 
 	for _, i := range path {
 		x, y := grid.ToXY(i, rowSize)
@@ -220,7 +252,7 @@ func Solve() (int, int, error) {
 	g3 := repeatDown(&g2)
 
 	risk := 0
-	path := findPath(&g3, rowSize*5, rowCount*5, 0, 500*500-1)
+	path := findPath(g3, rowSize*5, rowCount*5, 0, 500*500-1)
 
 	for _, i := range path {
 		x, y := grid.ToXY(i, rowSize)
