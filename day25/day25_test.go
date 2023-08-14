@@ -174,8 +174,6 @@ func TestGridParse(t *testing.T) {
 
 	log.Print(grid)
 
-	t.Fail()
-
 	if x != 10 {
 		t.Errorf("Expected X of 10, not %v\n", x)
 	}

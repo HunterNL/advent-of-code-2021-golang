@@ -69,21 +69,21 @@ func TestParsePackage2(t *testing.T) {
 func TestParsePackage3(t *testing.T) {
 	b := parseHex(t, "38006F45291200")
 
-	assert.Equal(t, b.version, 1)
-	assert.Equal(t, b.id, 6)
+	assert.Equal(t, b.version, uint8(1))
+	assert.Equal(t, b.id, uint8(6))
 
 	assert.Equal(t, len(b.children), 2)
 
-	assert.Equal(t, b.children[0].literal, 10)
-	assert.Equal(t, b.children[1].literal, 20)
+	assert.Equal(t, b.children[0].literal, uint(10))
+	assert.Equal(t, b.children[1].literal, uint(20))
 }
 func TestParsePackage4(t *testing.T) {
 	b := parseHex(t, "D2FE28")
 
-	assert.Equal(t, b.version, 6)
-	assert.Equal(t, b.id, 4)
+	assert.Equal(t, b.version, uint8(6))
+	assert.Equal(t, b.id, uint8(4))
 
-	assert.Equal(t, b.literal, 2021)
+	assert.Equal(t, b.literal, uint(2021))
 }
 
 func TestSums(t *testing.T) {
