@@ -5,15 +5,15 @@ import (
 	"strings"
 )
 
-func ReadFile(fileName string) []string {
+func ReadFile(fileName string) ([]string, error) {
 	file, err := os.ReadFile(fileName)
 	if err != nil {
-		panic(err)
+		return []string{}, err
 	}
 
 	rawString := string(file)
 
-	return strings.Split(strings.TrimRight(rawString, "\r\n"), "\n")
+	return strings.Split(strings.TrimRight(rawString, "\r\n"), "\n"), nil
 }
 
 func SplitOnce(str string, seperator string) (string, string) {

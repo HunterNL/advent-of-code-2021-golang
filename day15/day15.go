@@ -246,7 +246,10 @@ func part1(file []string) int {
 }
 
 func Solve() (int, int, error) {
-	file := file.ReadFile("./day15/input.txt")
+	file, err := file.ReadFile("./day15/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 	g, rowSize, rowCount := parseGrid(file)
 	g2 := repeatRight(&g, rowSize)
 	g3 := repeatDown(&g2)

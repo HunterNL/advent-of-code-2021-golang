@@ -13,8 +13,7 @@ func TestParse(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		log.Print(string(file))
-		panic(err)
+		t.Log(err)
 	}
 
 	alg, img := parseInput(file, 5, 0)
@@ -107,8 +106,7 @@ func TestEnhance(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		log.Print(string(file))
-		panic(err)
+		t.Error(err)
 	}
 
 	expectedImage := newImage(7)
@@ -194,8 +192,7 @@ func TestEnhanceCount(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		t.Log(string(file))
-		panic(err)
+		t.Error(err)
 	}
 
 	alg, img := parseInput(file, 5, 2)
@@ -220,8 +217,7 @@ func TestBulkEnhanceCount(t *testing.T) {
 	file, err := os.ReadFile("./input_test.txt")
 
 	if err != nil {
-		log.Print(string(file))
-		panic(err)
+		t.Error(err)
 	}
 
 	alg, img := parseInput(file, 5, 50)

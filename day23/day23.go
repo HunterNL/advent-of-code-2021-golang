@@ -526,7 +526,7 @@ type gameConfig struct {
 func Solve() (int, int, error) {
 	bytes, err := os.ReadFile("./day23/input.txt")
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	boardP1 := parseBoard(string(bytes), PARSE_SMALL)

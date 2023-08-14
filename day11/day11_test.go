@@ -6,7 +6,10 @@ import (
 )
 
 func TestFlashCount(t *testing.T) {
-	lines := file.ReadFile("./test-input.txt")
+	lines, err := file.ReadFile("./test-input.txt")
+	if err != nil {
+		t.Error(err)
+	}
 	grid := parseGrid(lines)
 
 	flashCount10 := countFlashes(&grid, 10)
@@ -24,7 +27,10 @@ func TestFlashCount(t *testing.T) {
 }
 
 func TestFindSyncStep(t *testing.T) {
-	lines := file.ReadFile("./test-input.txt")
+	lines, err := file.ReadFile("./test-input.txt")
+	if err != nil {
+		t.Error(err)
+	}
 	grid := parseGrid(lines)
 
 	syncStep := findSyncStep(&grid)

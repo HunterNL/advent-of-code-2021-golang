@@ -29,7 +29,7 @@ func Test1dCompare(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	instructions := parseInstructions(string(bytes))
@@ -55,7 +55,7 @@ func Test1DTest(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	instructions := parseInstructions(string(bytes))
@@ -75,7 +75,7 @@ func TestCount(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	instructions := parseInstructions(string(bytes))

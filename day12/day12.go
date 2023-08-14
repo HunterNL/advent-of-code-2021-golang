@@ -112,7 +112,10 @@ func countComplexRoutes(g Graph) int {
 }
 
 func Solve() (int, int, error) {
-	lines := file.ReadFile("./day12/input.txt")
+	lines, err := file.ReadFile("./day12/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 	g := parseGraph(lines)
 
 	log.Println("cave count", len(g.idMap))

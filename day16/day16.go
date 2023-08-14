@@ -166,17 +166,22 @@ func resolvePacket(p *bitsPackage) int {
 }
 
 func Solve() (int, int, error) {
-	line := file.ReadFile("./day16/input.txt")[0]
+	lines, err := file.ReadFile("./day16/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
+
+	line := lines[0]
 
 	b, err := hex.DecodeString(line)
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	bs := newBs(bytes.NewReader(b))
 	packet, err := parsePacket(bs)
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	sum := 0

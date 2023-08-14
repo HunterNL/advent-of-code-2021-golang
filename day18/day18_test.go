@@ -114,7 +114,12 @@ func TestReducingSum(t *testing.T) {
 	}
 }
 func TestComplexSum(t *testing.T) {
-	lines := convertStringSlice(file.ReadFile("./test_data.txt"))
+	str, err := file.ReadFile("./test_data.txt")
+
+	if err != nil {
+		t.Error(err)
+	}
+	lines := convertStringSlice(str)
 	sum := sum(lines).String()
 	if sum != "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]" {
 		t.Error("Failed complex sum")
@@ -153,7 +158,11 @@ func TestComplexSum(t *testing.T) {
 // }
 
 func TestAll(t *testing.T) {
-	lines := convertStringSlice(file.ReadFile("./test_data2.txt"))
+	str, err := file.ReadFile("./test_data2.txt")
+	if err != nil {
+		t.Error(err)
+	}
+	lines := convertStringSlice(str)
 	sum := sum(lines)
 	if sum.String() != "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]" {
 		t.Error("Failed system sum")

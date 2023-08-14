@@ -127,7 +127,10 @@ func (g *grid) step(x, y int) (grid, bool) {
 }
 
 func Solve() (int, int, error) {
-	lines := file.ReadFile("./day25/input.txt")
+	lines, err := file.ReadFile("./day25/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 	grid, x, y := parseGrid(lines)
 
 	moved := true

@@ -9,7 +9,7 @@ import (
 func TestParse(t *testing.T) {
 	bytes, err := os.ReadFile("./test1_input.txt")
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	_, scanners := parseDetection(string(bytes))
 
@@ -23,7 +23,7 @@ func TestRotationoffset(t *testing.T) {
 	_, scanners := parseDetection(string(bytes))
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	o := oceanFromStartingScanner(scanners[0])
@@ -55,7 +55,7 @@ func TestOverLapCount(t *testing.T) {
 	_, scanners := parseDetection(string(bytes))
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	o := oceanFromStartingScanner(scanners[0])
@@ -83,7 +83,7 @@ func TestAbsolutePositions(t *testing.T) {
 	_, scanners := parseDetection(string(bytes))
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	o := oceanFromStartingScanner(scanners[0])
 
@@ -106,7 +106,7 @@ func TestCount(t *testing.T) {
 	_, unresolvedScanners := parseDetection(string(bytes))
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	unresolvedScanners[0].resolved = true
@@ -131,7 +131,7 @@ func TestManhatten(t *testing.T) {
 	_, unresolvedScanners := parseDetection(string(bytes))
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	o := oceanFromStartingScanner(unresolvedScanners[0])

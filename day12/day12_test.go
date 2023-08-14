@@ -14,7 +14,10 @@ func TestCountRoutes(t *testing.T) {
 
 	for path, expected := range tc {
 
-		lines := file.ReadFile(path)
+		lines, err := file.ReadFile(path)
+		if err != nil {
+			t.Error(err)
+		}
 		g := parseGraph(lines)
 
 		count := countRoutes(&g)
@@ -34,7 +37,10 @@ func TestCountComplexRoutes(t *testing.T) {
 
 	for path, expected := range tc {
 
-		lines := file.ReadFile(path)
+		lines, err := file.ReadFile(path)
+		if err != nil {
+			t.Error(err)
+		}
 		g := parseGraph(lines)
 
 		count := countComplexRoutes(&g)

@@ -9,7 +9,10 @@ import (
 )
 
 func TestFindPath(t *testing.T) {
-	file := file.ReadFile("./test-input.txt")
+	file, err := file.ReadFile("./test-input.txt")
+	if err != nil {
+		t.Error(err)
+	}
 	g, rowSize, rowCount := parseGrid(file)
 
 	risk := 0
@@ -42,7 +45,10 @@ func TestMod(t *testing.T) {
 }
 
 func TestRepeat(t *testing.T) {
-	file := file.ReadFile("./test-input.txt")
+	file, err := file.ReadFile("./test-input.txt")
+	if err != nil {
+		t.Error(err)
+	}
 	g, rowSize, _ := parseGrid(file)
 	r := repeatRight(&g, rowSize)
 

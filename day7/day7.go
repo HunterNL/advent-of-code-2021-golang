@@ -60,7 +60,7 @@ func CalcFuelExpensive(crabPos []int) int {
 func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day7/input.txt")
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	strs := strings.Split(string(file), ",")

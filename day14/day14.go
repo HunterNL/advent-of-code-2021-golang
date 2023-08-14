@@ -156,7 +156,12 @@ func smartStep(c *counts, rules *map[string]string, pairMap *map[string][2]strin
 }
 
 func Solve() (int, int, error) {
-	seed, rules := parseLines(file.ReadFile("./day14/input.txt"))
+	str, err := file.ReadFile("./day14/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
+
+	seed, rules := parseLines(str)
 
 	// for i := 0; i < 10; i++ {
 	// 	seed = step(seed, &rules)

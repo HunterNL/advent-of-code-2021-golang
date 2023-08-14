@@ -9,7 +9,7 @@ func TestParseLarge(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	parsedBoard := parseBoard(string(bytes), PARSE_LARGE)
@@ -49,7 +49,7 @@ func TestParseSmall(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	parsedBoard := parseBoard(string(bytes), PARSE_SMALL)
@@ -122,7 +122,7 @@ func TestScoreSmall(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	board := parseBoard(string(bytes), PARSE_SMALL)
@@ -142,7 +142,7 @@ func TestScoreLarge(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	board := parseBoard(string(bytes), PARSE_LARGE)
@@ -193,7 +193,7 @@ func TestPerfectMovement(t *testing.T) {
 	bytes, err := os.ReadFile("./test_input.txt")
 
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	board := parseBoard(string(bytes), PARSE_LARGE)

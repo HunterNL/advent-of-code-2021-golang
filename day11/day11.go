@@ -142,7 +142,10 @@ func toString(grid *[100]uint8) string {
 }
 
 func Solve() (int, int, error) {
-	lines := file.ReadFile("./day11/input.txt")
+	lines, err := file.ReadFile("./day11/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 	grid := parseGrid(lines)
 
 	flashes := countFlashes(&grid, 100)

@@ -146,7 +146,10 @@ func SumLines(lines []string) int {
 }
 
 func Solve() (int, int, error) {
-	lines := file.ReadFile("./day8/input.txt")
+	lines, err := file.ReadFile("./day8/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 
 	digits := CountUniqueDigits(lines)
 

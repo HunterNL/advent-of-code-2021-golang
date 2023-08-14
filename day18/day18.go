@@ -428,7 +428,10 @@ func add(a, b, parent number) number {
 }
 
 func Solve() (int, int, error) {
-	lines := file.ReadFile("./day18/input.txt")
+	lines, err := file.ReadFile("./day18/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 	part1Numbers := []number{}
 	for _, line := range lines {
 		part1Numbers = append(part1Numbers, numberFromString(line))

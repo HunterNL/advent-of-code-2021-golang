@@ -203,7 +203,7 @@ func (c cuboid) String() string {
 	return fmt.Sprintf("[%v | %v]", c.x.min, c.x.max)
 }
 
-//Removes any areas overlapping the given area from the reactor
+// Removes any areas overlapping the given area from the reactor
 func removeOverlap(reactor cuboidReactor, clearArea cuboid) cuboidReactor {
 
 	for i := 0; i < len(reactor); i++ {
@@ -238,7 +238,7 @@ func Solve() (int, int, error) {
 	bytes, err := os.ReadFile("./day22/input.txt")
 
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	instructions := parseInstructions(string(bytes))

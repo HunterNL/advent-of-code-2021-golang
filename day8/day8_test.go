@@ -6,7 +6,10 @@ import (
 )
 
 func TestCountUniqueDigits(t *testing.T) {
-	lines := file.ReadFile("./test_input.txt")
+	lines, err := file.ReadFile("./test_input.txt")
+	if err != nil {
+		t.Error(err)
+	}
 
 	digits := CountUniqueDigits(lines)
 
@@ -16,7 +19,10 @@ func TestCountUniqueDigits(t *testing.T) {
 }
 
 func TestLinesSum(t *testing.T) {
-	lines := file.ReadFile("./test_input.txt")
+	lines, err := file.ReadFile("./test_input.txt")
+	if err != nil {
+		t.Error(err)
+	}
 
 	digits := SumLines(lines)
 

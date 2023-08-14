@@ -100,7 +100,7 @@ func parseBoard(str string) *board {
 func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day4/input.txt")
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	// String wrestling

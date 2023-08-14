@@ -6,7 +6,12 @@ import (
 )
 
 func TestApplyRule(t *testing.T) {
-	seed, rules := parseLines(file.ReadFile("./test-input.txt"))
+	str, err := file.ReadFile("./test-input.txt")
+	if err != nil {
+		t.Error(err)
+	}
+
+	seed, rules := parseLines(str)
 
 	if seed != "NNCB" {
 		t.Errorf("Parsing error, expected NNCB but got %v\n", seed)
@@ -43,7 +48,11 @@ func mapsMatch(small map[byte]int, large map[byte]int) bool {
 }
 
 func TestComplexCount(t *testing.T) {
-	seed, rules := parseLines(file.ReadFile("./test-input.txt"))
+	str, err := file.ReadFile("./test-input.txt")
+	if err != nil {
+		t.Error(err)
+	}
+	seed, rules := parseLines(str)
 
 	c := getCounts(seed)
 	pairs := buildPairMap(&rules)

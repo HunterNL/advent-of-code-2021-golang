@@ -339,7 +339,7 @@ func enhanceSinglePixel(x, y int, algorithm string, img image, oobState bool, bi
 func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day20/input.txt")
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	alg, img := parseInput(file, 100, 50)

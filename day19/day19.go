@@ -333,7 +333,7 @@ func findLargestDistance(scanners []scanner) int {
 func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day19/input.txt")
 	if err != nil {
-		panic(err)
+		return -1, 1, err
 	}
 
 	_, unresolvedScanners := parseDetection(string(file))

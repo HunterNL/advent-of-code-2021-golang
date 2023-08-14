@@ -121,7 +121,10 @@ func lowestPoints(cavemap heightMap, xbound, ybound int) heightMap {
 }
 
 func Solve() (int, int, error) {
-	lines := file.ReadFile("./day9/input.txt")
+	lines, err := file.ReadFile("./day9/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 	cavemap, xbound, ybound := parseMap(lines)
 	points := lowestPoints(cavemap, xbound, ybound)
 	sizes := topBasinSizes(&cavemap, points, xbound, ybound)

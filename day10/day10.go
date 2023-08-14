@@ -97,7 +97,10 @@ func scoreCompletion(completion []rune) int {
 }
 
 func Solve() (int, int, error) {
-	lines := file.ReadFile("./day10/input.txt")
+	lines, err := file.ReadFile("./day10/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 	sum := 0
 
 	for _, e := range lines {

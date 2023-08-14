@@ -77,7 +77,7 @@ func countIntersections(g *grid) int {
 func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day5/input.txt")
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 
 	lines := parseFile(string(file))

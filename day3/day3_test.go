@@ -10,7 +10,7 @@ import (
 func TestPart2(t *testing.T) {
 	dir, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 	t.Log(dir)
 	lines, err := aocutil.ReadFile("./test_input.txt")
@@ -23,7 +23,7 @@ func TestPart2(t *testing.T) {
 
 	o2Rating, err := strconv.ParseInt(o2str, 2, 64)
 	if err != nil {
-		panic(err)
+		t.Error(err)
 	}
 
 	if o2str != "10111" {
