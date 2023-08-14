@@ -2,6 +2,8 @@ package day17
 
 import (
 	"log"
+	"os"
+	"strings"
 )
 
 type target struct {
@@ -82,10 +84,13 @@ func countHits(t target) int {
 }
 
 func Solve() (int, int, error) {
-	input := "target area: x=209..238, y=-86..-59"
+	file, err := os.ReadFile("./day17/input.txt") // You saw nothing :>
+	if err != nil {
+		return -1, -1, err
+	}
+	input := strings.TrimSpace(string(file))
+
 	target := parseTarget(input)
-	// x := findValidX(target)
-	// y := findValidY(target)
 
 	maxY := iterTillDown(85)
 

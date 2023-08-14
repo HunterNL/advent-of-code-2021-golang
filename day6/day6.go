@@ -45,7 +45,7 @@ func CalcLanternFish(startFish []int, interations int) int {
 func Solve() (int, int, error) {
 	file, err := os.ReadFile("./day6/input.txt")
 	if err != nil {
-
+		return -1, -1, err
 	}
 
 	strs := strings.Split(string(file), ",")

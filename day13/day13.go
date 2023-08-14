@@ -140,7 +140,7 @@ func printGrid(grid *map[xy]bool) string {
 func Solve() (int, int, error) {
 	bytes, err := os.ReadFile("./day13/input.txt")
 	if err != nil {
-		panic(err)
+		return -1, -1, err
 	}
 	str := string(bytes)
 
