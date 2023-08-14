@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-func ReadFile(filename string) []string {
+func ReadFile(filename string) ([]string, error) {
 	file, err := os.ReadFile(filename)
 	if err != nil {
-		panic(err.Error())
+		return []string{}, err
 	}
 
-	return strings.Split(strings.TrimSpace(string(file)), "\n")
+	return strings.Split(strings.TrimSpace(string(file)), "\n"), nil
 }
 
 func CommaStringToInts(str string) []int {

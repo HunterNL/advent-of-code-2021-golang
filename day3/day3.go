@@ -61,7 +61,10 @@ func part2(lines []string, invert bool) string {
 }
 
 func Solve() (int, int, error) {
-	lines := aocutil.ReadFile("./day3/input.txt")
+	lines, err := aocutil.ReadFile("./day3/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 
 	byteMiddle := len(lines) / 2
 

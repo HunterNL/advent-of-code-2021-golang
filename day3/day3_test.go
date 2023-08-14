@@ -13,7 +13,10 @@ func TestPart2(t *testing.T) {
 		panic(err)
 	}
 	t.Log(dir)
-	lines := aocutil.ReadFile("./test_input.txt")
+	lines, err := aocutil.ReadFile("./test_input.txt")
+	if err != nil {
+		t.Error(err)
+	}
 
 	o2str := part2(lines, false)
 	cooStr := part2(lines, true)

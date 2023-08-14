@@ -20,7 +20,10 @@ func Solve() (int, int, error) {
 	depth := 0
 	aim := 0
 
-	commands := aocutil.ReadFile("./day2/input.txt")
+	commands, err := aocutil.ReadFile("./day2/input.txt")
+	if err != nil {
+		return -1, -1, err
+	}
 
 	// Part 1
 	for _, str := range commands {
