@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -17,12 +16,16 @@ func TestSolutions(t *testing.T) {
 
 	solutionFile, err := os.ReadFile("./solutions.json")
 
+	if errors.Is(err, fs.ErrNotExist) {
+		t.Log("No solutions file found, rename solutions.json.example to solutions.json or run the main binary with --write-solutions")
+	}
+
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
 	}
 
-	solutions, err := aoc.ParseSolutions(solutionFile)
+	solutions, err := aoc.DecodeSolutions(solutionFile)
 
 	if err != nil {
 		t.Log(err)
@@ -65,7 +68,7 @@ func TestSolutions(t *testing.T) {
 }
 
 func BenchmarkSolutions(b *testing.B) {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	for dayIndex, day := range getDays() {
 		b.Run(fmt.Sprint("Day", dayIndex+1), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {

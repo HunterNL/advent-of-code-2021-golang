@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aoc2021/aoc"
 	"aoc2021/day1"
 	"aoc2021/day10"
 	"aoc2021/day11"
@@ -26,6 +27,7 @@ import (
 	"aoc2021/day7"
 	"aoc2021/day8"
 	"aoc2021/day9"
+	"flag"
 	"io"
 	"log"
 	"os"
@@ -71,6 +73,10 @@ func getDays() []dayFunc {
 }
 
 func main() {
+	writePathPtr := flag.String("o", "", "filepath to write solutions to")
+	flag.Parse()
+	writePath := *writePathPtr
+
 	days := getDays()
 
 	output := []dayResult{}
@@ -92,7 +98,7 @@ func main() {
 	for i, day := range output {
 		totalDuration += int64(durations[i])
 		if day.err != nil {
-			log.Printf("Day %2v:        Error:%v\n", i, day.err)
+			log.Printf("Day %2v:        Error:%v\n", i+1, day.err)
 		} else {
 			log.Printf("Day %2v: %4v ms\n", i+1, int64(durations[i]/time.Millisecond))
 		}
@@ -100,5 +106,26 @@ func main() {
 	}
 
 	log.Printf("Total duration: %vms\n", totalDuration/int64(time.Millisecond))
+
+	if writePath != "" {
+		f, err := os.OpenFile(writePath, os.O_RDWR|os.O_CREATE|os.O_EXCL, os.ModeType)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		outMap := make(map[int]aoc.Solution)
+		for i, day := range output {
+			outMap[i+1] = aoc.Solution{Part1: day.part1, Part2: day.part2}
+		}
+
+		b, err := aoc.EncodeSolutionsSlice(outMap)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		f.Write(b)
+
+	}
 
 }

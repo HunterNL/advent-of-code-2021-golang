@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 )
 
-type solution struct {
+type Solution struct {
 	Part1 int
 	Part2 int
 }
 
-func (s *solution) UnmarshalJSON(b []byte) error {
+func (s *Solution) UnmarshalJSON(b []byte) error {
 	intArray := [2]int{}
 	error := json.Unmarshal(b, &intArray)
 	if error != nil {
@@ -21,8 +21,17 @@ func (s *solution) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func sortDays(dayMap map[int]solution) []solution {
-	out := []solution{}
+func (s Solution) MarshalJSON() ([]byte, error) {
+	intArray := [2]int{}
+
+	intArray[0] = s.Part1
+	intArray[1] = s.Part2
+
+	return json.Marshal(intArray)
+}
+
+func sortDays(dayMap map[int]Solution) []Solution {
+	out := []Solution{}
 
 	// Find lowest key, append to out and remove
 	for len(dayMap) > 0 {
@@ -41,8 +50,8 @@ func sortDays(dayMap map[int]solution) []solution {
 	return out
 }
 
-func ParseSolutions(file []byte) (map[int]solution, error) {
-	dayMap := make(map[int]solution)
+func DecodeSolutions(file []byte) (map[int]Solution, error) {
+	dayMap := make(map[int]Solution)
 
 	decodingError := json.Unmarshal(file, &dayMap)
 	if decodingError != nil {
@@ -50,4 +59,8 @@ func ParseSolutions(file []byte) (map[int]solution, error) {
 	}
 
 	return dayMap, nil
+}
+
+func EncodeSolutionsSlice(solutions map[int]Solution) ([]byte, error) {
+	return json.MarshalIndent(solutions, "", "\t")
 }

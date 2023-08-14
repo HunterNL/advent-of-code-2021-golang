@@ -9,7 +9,7 @@ func TestParse(t *testing.T) {
 	t.SkipNow()
 	jsonBytes := []byte(`{"1":{"part1": 5,"part2": 15}}`)
 
-	dayMap := make(map[int]solution)
+	dayMap := make(map[int]Solution)
 
 	decodingError := json.Unmarshal(jsonBytes, &dayMap)
 	if decodingError != nil {
