@@ -11,13 +11,14 @@ const BOARD_SIZE = 23
 
 // Array holding all amphipod positions
 type board [BOARD_SIZE]amphipod
-type amphipod byte
+type amphipod uint8
 type position int
 
 func findQuickestMoves(startPosition board, roomSize int, winState board) int {
 
 	openSet := gameSet{}
 	seenStates := make(map[board]int, 0)
+	destinationSlice := make([]position, 0, BOARD_SIZE)
 
 	config := gameConfig{
 		winState: winState,
@@ -30,7 +31,7 @@ func findQuickestMoves(startPosition board, roomSize int, winState board) int {
 		lowestItem := heap.Pop(&openSet)
 		lowestGame := lowestItem.(game)
 
-		if isWon(lowestGame.state, &config) {
+		if isWon(lowestGame.state, config) {
 			return lowestGame.score
 		}
 
@@ -41,7 +42,9 @@ func findQuickestMoves(startPosition board, roomSize int, winState board) int {
 				continue
 			}
 			from := position(i)
-			for _, to := range availableDestinations(&lowestGame.state, from, roomSize) {
+			destinationSlice = destinationSlice[:0]
+			availableDestinations(lowestGame.state, from, roomSize, &destinationSlice)
+			for _, to := range destinationSlice {
 				moves = append(moves, move{from: from, to: to})
 			}
 		}
@@ -66,32 +69,30 @@ func findQuickestMoves(startPosition board, roomSize int, winState board) int {
 	}
 }
 
-func availableDestinations(b *board, currentPosition position, roomSize int) []position {
+func availableDestinations(b board, currentPosition position, roomSize int, destinationSlice *[]position) {
 	pod := b[currentPosition]
-	out := make([]position, 0, 16)
+	*destinationSlice = (*destinationSlice)[:0]
 
 	if isHome(pod, currentPosition) && !shouldLeaveHome(b, currentPosition, roomSize) {
-		return out
+		return
 	}
 
 	if isInRoom(currentPosition) {
 		for targetPosition := position(6); targetPosition >= 0; targetPosition-- {
 			if canPathTo(b, currentPosition, targetPosition) {
-				out = append(out, targetPosition)
+				*destinationSlice = append(*destinationSlice, targetPosition)
 			}
 		}
-		return out
+		return
 	}
 
 	if isInHallway(currentPosition) && canEnterHome(b, pod, roomSize) {
 		roomPos := findHomePosition(b, pod, roomSize)
 		if canPathTo(b, currentPosition, roomPos) {
-			out = append(out, roomPos)
+			*destinationSlice = append(*destinationSlice, roomPos)
 		}
-		return out
+		return
 	}
-
-	return []position{}
 }
 
 func (g game) applyMove(from, to position, roomSize int) game {
@@ -114,7 +115,7 @@ func hueristic(g game, roomSize int) int {
 		}
 
 		if isHome(pod, pos) {
-			if shouldLeaveHome(&g.state, pos, roomSize) { // Blocking something, gotta move
+			if shouldLeaveHome(g.state, pos, roomSize) { // Blocking something, gotta move
 				homeEntry, _ := podHomePositions(pod, roomSize)
 				out += (int(pos-homeEntry) + 2) * costMap[pod] // 2 is the minimal distance required to leave a room
 			}
@@ -138,7 +139,7 @@ func hueristic(g game, roomSize int) int {
 // Start movement logic
 
 // An amphipod should leave home if it's blocking a different type amphipod from leaving
-func shouldLeaveHome(b *board, pos position, roomSize int) bool {
+func shouldLeaveHome(b board, pos position, roomSize int) bool {
 	pod := b[pos]
 	start, end := podHomePositions(pod, roomSize)
 	for i := start + 1; i <= end; i++ {
@@ -150,7 +151,7 @@ func shouldLeaveHome(b *board, pos position, roomSize int) bool {
 	return false
 }
 
-func findHomePosition(b *board, pod amphipod, roomSize int) position {
+func findHomePosition(b board, pod amphipod, roomSize int) position {
 	start, end := podHomePositions(pod, roomSize)
 	for position := end; position >= start; position-- {
 		if !isOccupied(b, position) {
@@ -162,7 +163,7 @@ func findHomePosition(b *board, pod amphipod, roomSize int) position {
 }
 
 // Amphipod can only enter if no other amphipod types are present
-func canEnterHome(b *board, pod amphipod, roomSize int) bool {
+func canEnterHome(b board, pod amphipod, roomSize int) bool {
 	start, end := podHomePositions(pod, roomSize)
 
 	for i := end; i >= start; i-- {
@@ -180,7 +181,7 @@ func podHomePositions(pod amphipod, roomSize int) (position, position) {
 	return targetRooms[pod], targetRooms[pod] + position(roomSize) - 1
 }
 
-func canPathTo(b *board, from, to position) bool {
+func canPathTo(b board, from, to position) bool {
 	if isOccupied(b, to) {
 		return false
 	}
@@ -205,11 +206,12 @@ type game struct {
 	heapIndex int
 }
 
-var costMap = map[amphipod]int{
-	amphipod('A'): 1,
-	amphipod('B'): 10,
-	amphipod('C'): 100,
-	amphipod('D'): 1000,
+var costMap = [5]int{
+	-1,
+	1,
+	10,
+	100,
+	1000,
 }
 
 // Global memoization of paths between two points, hashed as x*100+y
@@ -246,6 +248,17 @@ var positionMap = [BOARD_SIZE]vec2{
 	22: {8, 4},
 }
 
+var movementStacks = [6][2]int{}
+
+func init() {
+	movementStacks[0] = [2]int{1, 0}  // Left stable
+	movementStacks[1] = [2]int{9, 10} // Right stable
+	movementStacks[2] = [2]int{1, 0}  // Room A
+	movementStacks[3] = [2]int{1, 0}  // Room B
+	movementStacks[4] = [2]int{1, 0}  // Room C
+	movementStacks[5] = [2]int{1, 0}  // Room D
+}
+
 func manhatten(v1, v2 vec2) int {
 	return intmath.Distance(v1.x, v2.x) + intmath.Distance(v1.y, v2.y)
 }
@@ -277,22 +290,22 @@ var desiredLargeBoard = board{
 	amphipod(0),
 	amphipod(0),
 	amphipod(0),
-	amphipod('A'),
-	amphipod('A'),
-	amphipod('A'),
-	amphipod('A'),
-	amphipod('B'),
-	amphipod('B'),
-	amphipod('B'),
-	amphipod('B'),
-	amphipod('C'),
-	amphipod('C'),
-	amphipod('C'),
-	amphipod('C'),
-	amphipod('D'),
-	amphipod('D'),
-	amphipod('D'),
-	amphipod('D'),
+	amphipod(1),
+	amphipod(1),
+	amphipod(1),
+	amphipod(1),
+	amphipod(2),
+	amphipod(2),
+	amphipod(2),
+	amphipod(2),
+	amphipod(3),
+	amphipod(3),
+	amphipod(3),
+	amphipod(3),
+	amphipod(4),
+	amphipod(4),
+	amphipod(4),
+	amphipod(4),
 }
 
 var desiredSmallBoard = [BOARD_SIZE]amphipod{
@@ -303,29 +316,30 @@ var desiredSmallBoard = [BOARD_SIZE]amphipod{
 	amphipod(0),
 	amphipod(0),
 	amphipod(0),
-	amphipod('A'),
-	amphipod('A'),
+	amphipod(1),
+	amphipod(1),
 	amphipod(0),
 	amphipod(0),
-	amphipod('B'),
-	amphipod('B'),
+	amphipod(2),
+	amphipod(2),
 	amphipod(0),
 	amphipod(0),
-	amphipod('C'),
-	amphipod('C'),
+	amphipod(3),
+	amphipod(3),
 	amphipod(0),
 	amphipod(0),
-	amphipod('D'),
-	amphipod('D'),
+	amphipod(4),
+	amphipod(4),
 	amphipod(0),
 	amphipod(0),
 }
 
-var targetRooms = map[amphipod]position{
-	'A': roomA,
-	'B': roomB,
-	'C': roomC,
-	'D': roomD,
+var targetRooms = [5]position{
+	0: -1,
+	1: roomA,
+	2: roomB,
+	3: roomC,
+	4: roomD,
 }
 
 func sign(a int) int {
@@ -406,7 +420,7 @@ func findVectorIndex(v vec2, positionMap *[BOARD_SIZE]vec2) int {
 	panic("Did not find vector")
 }
 
-func isOccupied(b *board, pos position) bool {
+func isOccupied(b board, pos position) bool {
 	return b[pos] != amphipod(0)
 }
 
@@ -414,7 +428,7 @@ func distance(from, to position) int {
 	return manhatten(positionMap[from], positionMap[to])
 }
 
-func isWon(b board, cache *gameConfig) bool {
+func isWon(b board, cache gameConfig) bool {
 	return b == cache.winState
 }
 
@@ -450,7 +464,6 @@ const (
 )
 
 func parseBoard(s string, mode parsemode) board {
-
 	justChars := strings.ReplaceAll(strings.Trim(s, " \n"), "#", "")
 	rowOffset := 1
 	if mode == PARSE_LARGE {
@@ -463,24 +476,24 @@ func parseBoard(s string, mode parsemode) board {
 
 	out := board{}
 	for i := 0; i < 4; i++ {
-		out[HallwaySize+i*4] = amphipod(topRoomContent[i])
+		out[HallwaySize+i*4] = amphipod(topRoomContent[i] - 'A' + 1)
 	}
 
 	for i := 0; i < 4; i++ {
-		out[HallwaySize+rowOffset+i*4] = amphipod(bottomRoomContent[i])
+		out[HallwaySize+rowOffset+i*4] = amphipod(bottomRoomContent[i] - 'A' + 1)
 	}
 
 	if mode == PARSE_LARGE {
 		day2Content := map[int]amphipod{
-			7 + 1:  amphipod('D'),
-			7 + 5:  amphipod('C'),
-			7 + 9:  amphipod('B'),
-			7 + 13: amphipod('A'),
+			7 + 1:  amphipod(4),
+			7 + 5:  amphipod(3),
+			7 + 9:  amphipod(2),
+			7 + 13: amphipod(1),
 
-			7 + 2:  amphipod('D'),
-			7 + 6:  amphipod('B'),
-			7 + 10: amphipod('A'),
-			7 + 14: amphipod('C'),
+			7 + 2:  amphipod(4),
+			7 + 6:  amphipod(2),
+			7 + 10: amphipod(1),
+			7 + 14: amphipod(3),
 		}
 
 		for i, pod := range day2Content {
